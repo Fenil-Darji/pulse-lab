@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F7F4F3">
-<title>Fingertip Pulse Lab</title>
+<title>Phone Vitals Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -289,6 +289,70 @@ select {
 .live-note { font-size: 13.5px; color: var(--ink-2); }
 .live-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
+/* Tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); margin-bottom: -12px; }
+.tabs button {
+  font-family: var(--font-display); font-weight: 600; font-size: 1.3rem; line-height: 1.2;
+  color: var(--ink-3); background: none; border: 0; border-bottom: 2px solid transparent;
+  padding: 8px 14px 10px; margin-bottom: -1px; cursor: pointer;
+}
+.tabs button:hover { color: var(--ink-2); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
+.panel { display: grid; gap: 36px; min-width: 0; }
+
+/* Breathing controls */
+.field-row { display: flex; flex-wrap: wrap; gap: 12px 16px; }
+.field-row .field { flex: 1 1 170px; min-width: 0; }
+.footnote { font-size: 13.5px; color: var(--ink-3); }
+.stats dd.dd-flex { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+
+/* Reference inputs */
+.refrow { display: grid; gap: 8px; border-top: 1px solid var(--rule); padding-top: 16px; }
+.refrow label { font-size: 14px; color: var(--ink-2); }
+.refctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.refctl input {
+  font: inherit; font-size: 17px; width: 6.5em; padding: 8px 10px;
+  border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.refctl input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.refctl .unit { font-size: 14px; color: var(--ink-3); }
+.refmsg { font-size: 14px; color: var(--ink-2); min-height: 1.4em; }
+.btn-quiet:disabled { opacity: 0.5; cursor: default; }
+
+/* Breathing live view */
+.method-live { display: grid; gap: 6px; }
+.ml-head { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; font-size: 15px; }
+.ml-head b { font-weight: 600; }
+.ml-val { font-weight: 500; font-variant-numeric: tabular-nums; }
+.guide { display: flex; align-items: center; gap: 18px; }
+.guide-ring {
+  width: 88px; height: 88px; border-radius: 50%; flex: none;
+  border: 1px solid var(--rule); display: grid; place-items: center;
+}
+.guide-disc {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--trace-wash); border: 2px solid var(--trace);
+  transform: scale(0.45); will-change: transform;
+}
+.guide span { font-size: 1.35rem; font-weight: 600; }
+
+/* Validation log */
+.log { display: grid; gap: 14px; border-top: 1px solid var(--rule); padding-top: 28px; }
+.log-summary { display: grid; gap: 6px; font-size: 15px; color: var(--ink-2); max-width: 70ch; }
+.log-summary strong { color: var(--ink); font-weight: 600; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); }
+.table-wrap table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.table-wrap th, .table-wrap td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.table-wrap th { font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); }
+.table-wrap .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table-wrap tr:last-child td { border-bottom: 0; }
+#logFallback {
+  width: 100%; height: 120px; font-family: var(--font-mono); font-size: 12px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 8px;
+}
+
 @media (max-width: 680px) {
   .readout-top, .capture, .method { grid-template-columns: minmax(0, 1fr); }
   .hero-num { font-size: 72px; }
@@ -307,11 +371,17 @@ select {
 <body>
 <main class="sheet">
   <header class="masthead">
-    <p class="eyebrow">Photoplethysmography · version 2 · live camera</p>
-    <h1>Fingertip Pulse Lab</h1>
-    <p class="lede">Rest a fingertip on your phone's camera and watch your pulse appear. Each heartbeat pushes a little more blood into the fingertip, which changes how much light reaches the camera.</p>
+    <p class="eyebrow">Phone sensing · version 3</p>
+    <h1>Phone Vitals Lab</h1>
+    <p class="lede">Measure your pulse with the camera, and your breathing with the motion sensors and a sonar made from the speaker and microphone. Every result can be checked against a reference and saved to a validation log.</p>
   </header>
 
+  <nav class="tabs" role="tablist" aria-label="Measurement">
+    <button type="button" role="tab" id="tabPulse" aria-controls="panelPulse" aria-selected="true">Pulse</button>
+    <button type="button" role="tab" id="tabBreath" aria-controls="panelBreath" aria-selected="false" tabindex="-1">Breathing</button>
+  </nav>
+
+  <div class="panel" id="panelPulse" role="tabpanel" aria-labelledby="tabPulse">
   <section class="capture" id="capture">
     <div class="capture-main">
       <h2>Measure live</h2>
@@ -370,6 +440,15 @@ select {
       <button type="button" class="textbtn" id="exampleBtn" hidden>Show the example again</button>
     </p>
     <ul class="warnings" id="warnings"></ul>
+    <div class="refrow" id="pulseRef" hidden>
+      <label for="pulseRefIn">Pulse oximeter reading, taken during this measurement</label>
+      <div class="refctl">
+        <input id="pulseRefIn" type="number" inputmode="decimal" min="30" max="220" step="1" placeholder="74">
+        <span class="unit">BPM</span>
+        <button type="button" class="btn-quiet" id="pulseRefSave">Save to log</button>
+      </div>
+      <span class="refmsg" id="pulseRefMsg"></span>
+    </div>
   </section>
 
   <section class="chart-block">
@@ -446,6 +525,164 @@ select {
       <textarea id="csvFallback" readonly hidden aria-label="Raw data as CSV"></textarea>
     </section>
   </div>
+  </div>
+
+  <div class="panel" id="panelBreath" role="tabpanel" aria-labelledby="tabBreath" hidden>
+    <section class="capture" id="brCapture">
+      <div class="capture-main">
+        <h2>Measure breathing</h2>
+        <div class="seg" role="radiogroup" aria-label="Phone position">
+          <input type="radio" name="brPlace" id="placeChest" value="chest" checked>
+          <label for="placeChest"><b>Lying down, phone on chest</b><span>Motion sensors and sonar check each other</span></label>
+          <input type="radio" name="brPlace" id="placeFront" value="front">
+          <label for="placeFront"><b>Phone in front of chest</b><span>Sonar does the work, phone resting still</span></label>
+        </div>
+        <div class="field-row">
+          <label class="field" for="guideSel">Breathing guide
+            <select id="guideSel">
+              <option value="0">Off, breathe normally</option>
+              <option value="6">6 breaths/min</option>
+              <option value="10">10 breaths/min</option>
+              <option value="12">12 breaths/min</option>
+              <option value="15">15 breaths/min</option>
+              <option value="20">20 breaths/min</option>
+            </select>
+          </label>
+          <label class="field" for="toneSel">Sonar tone
+            <select id="toneSel">
+              <option value="18000">18 kHz</option>
+              <option value="19000" selected>19 kHz</option>
+              <option value="20000">20 kHz</option>
+            </select>
+          </label>
+        </div>
+        <button type="button" class="btn" id="brStart">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.3 6.9v6.2l5-3.1z" fill="currentColor"/></svg>
+          Start 60-second measurement
+        </button>
+        <p class="error" id="brError" role="alert" hidden></p>
+      </div>
+      <div class="howto-wrap">
+        <p class="howto-title" id="brHowtoTitle">Phone on chest</p>
+        <ol class="howto" id="howtoChest">
+          <li><span>Turn the <strong>media volume up</strong>. The sonar plays a tone too high for most adults to hear.</span></li>
+          <li><span>Lie on your back. Place the phone <strong>flat on your breastbone</strong>, screen up, with the bottom edge (speaker and microphone) pointing toward your chin.</span></li>
+          <li><span>Rest your arms by your sides and <strong>breathe normally</strong>. A chime marks the start and the end of the 60-second window.</span></li>
+          <li><span>To check accuracy, <strong>count each breath out</strong> between the two chimes, or ask someone to watch and count.</span></li>
+        </ol>
+        <ol class="howto" id="howtoFront" hidden>
+          <li><span>Turn the <strong>media volume up</strong>.</span></li>
+          <li><span>Sit back or lie down. Prop the phone <strong>20 to 40 cm from your chest</strong>, bottom edge (speaker and microphone) pointing at your chest, for example on a pillow on your lap.</span></li>
+          <li><span>Don't hold it. <strong>Hand movement</strong> is larger than breathing movement and swamps the sonar.</span></li>
+          <li><span>Breathe normally. Count each breath out between the start and end chimes if you are checking accuracy.</span></li>
+        </ol>
+        <p class="footnote">Children and pets may hear the sonar tone as a faint whine. Try a higher tone if it bothers anyone.</p>
+      </div>
+    </section>
+
+    <section class="readout" aria-live="polite" id="brReadout">
+      <div class="readout-top">
+        <div class="hero">
+          <span class="label">Breathing rate</span>
+          <span class="hero-val"><span class="hero-num" id="brRate">--</span><span class="hero-unit">breaths/min</span></span>
+          <span class="hero-sub" id="brSub"></span>
+        </div>
+        <dl class="stats">
+          <div><dt>Motion sensors</dt><dd class="dd-flex" id="brMotion">--</dd></div>
+          <div><dt>Sonar</dt><dd class="dd-flex" id="brSonar">--</dd></div>
+          <div><dt>Cross-check</dt><dd class="dd-flex" id="brAgree">--</dd></div>
+          <div><dt>Breaths detected</dt><dd id="brCount">--</dd></div>
+          <div><dt>Breathing guide</dt><dd id="brGuide">--</dd></div>
+          <div><dt>Recording</dt><dd id="brDur">--</dd></div>
+        </dl>
+      </div>
+      <p class="source">
+        <span class="chip" id="brChip" data-kind="example">Example result</span>
+        <span id="brSourceText">A synthetic session at about 14 breaths/min, shown until you take your first measurement.</span>
+        <button type="button" class="textbtn" id="brExampleBtn" hidden>Show the example again</button>
+      </p>
+      <ul class="warnings" id="brWarnings"></ul>
+      <div class="refrow" id="brRef" hidden>
+        <label for="brRefIn" id="brRefLabel">Breaths you counted between the chimes</label>
+        <div class="refctl">
+          <input id="brRefIn" type="number" inputmode="decimal" min="1" max="80" step="1" placeholder="14">
+          <span class="unit" id="brRefUnit">breaths</span>
+          <button type="button" class="btn-quiet" id="brRefSave">Save to log</button>
+        </div>
+        <span class="refmsg" id="brRefMsg"></span>
+      </div>
+    </section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2>Motion sensors</h2>
+        <p>Chest movement as the phone tilts, from the <span id="brMotionSrc">accelerometer</span>. Dots mark detected breaths. Height is in relative units.</p>
+      </div>
+      <div class="plot plot-fit" id="brMotionPlot">
+        <canvas class="base" aria-label="Breathing movement from the motion sensors"></canvas>
+        <canvas class="overlay" aria-hidden="true"></canvas>
+        <div class="hit"></div>
+        <div class="tip" hidden></div>
+      </div>
+    </section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2>Sonar</h2>
+        <p>Movement seen in the returning ultrasonic tone, from its <span id="brSonarSrc">phase</span>. Dots mark detected breaths. Height is in relative units.</p>
+      </div>
+      <div class="plot plot-fit" id="brSonarPlot">
+        <canvas class="base" aria-label="Breathing movement from the sonar"></canvas>
+        <canvas class="overlay" aria-hidden="true"></canvas>
+        <div class="hit"></div>
+        <div class="tip" hidden></div>
+      </div>
+    </section>
+
+    <div class="method">
+      <section>
+        <h2>How the page measures breathing</h2>
+        <ol>
+          <li><strong>Motion sensors.</strong> As your chest rises, the phone tilts by a fraction of a degree. The accelerometer sees gravity shift slightly between its axes, and the gyroscope sees the rotation. The page combines the axes into the one direction that moves the most.</li>
+          <li><strong>Sonar.</strong> The speaker plays a steady tone. The microphone hears it back, mixed with echoes. When your chest moves a few millimetres toward or away from the phone, the echo's timing shifts, which rotates the tone's phase. The page tracks that phase.</li>
+          <li><strong>Find the rhythm.</strong> Each signal is filtered to 6 to 42 breaths/min. Breaths are counted, and the frequency spectrum gives a second estimate.</li>
+          <li><strong>Grade each method.</strong> A method counts as clear when its signal repeats regularly from one breath to the next and its two estimates agree.</li>
+          <li><strong>Cross-check.</strong> If both methods are clear and within 2 breaths/min of each other, the result blends them, giving more weight to the cleaner signal. If they disagree, the cleaner one wins and the page says so.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Limits of this version</h2>
+        <ul>
+          <li>This is a learning tool, not a medical device.</li>
+          <li>Talking, coughing and shifting position break the rhythm for a few breaths.</li>
+          <li>Phone speakers and microphones vary in how well they handle ultrasound. The live view shows how strongly the tone reaches the microphone.</li>
+          <li>Paying attention to your breathing tends to slow it. That is fine for testing, because the page and your count see the same breaths.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <section class="log" id="logSection">
+    <div class="chart-head">
+      <h2>Validation log</h2>
+      <p>Each reference you save is kept on this phone only. Over several runs this shows how close each method gets.</p>
+    </div>
+    <div class="log-summary" id="logSummary"></div>
+    <div class="table-wrap" id="logWrap" hidden>
+      <table>
+        <thead>
+          <tr><th>When</th><th>Measure</th><th>Setup</th><th class="num">Page</th><th class="num">Motion</th><th class="num">Sonar</th><th class="num">Reference</th><th class="num">Difference</th></tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+    <div class="copyrow">
+      <button type="button" class="btn-quiet" id="logCopy">Copy log as CSV</button>
+      <button type="button" class="btn-quiet" id="logClear">Clear log</button>
+      <span class="copy-msg" id="logMsg"></span>
+    </div>
+    <textarea id="logFallback" readonly hidden aria-label="Validation log as CSV"></textarea>
+  </section>
 </main>
 
 <div class="live" id="live" data-mode="back" hidden>
@@ -471,6 +708,38 @@ select {
     </div>
     <div class="live-actions">
       <button type="button" class="btn" id="stopBtn">Stop</button>
+    </div>
+  </div>
+</div>
+
+<div class="live" id="liveBr" data-mode="breath" hidden>
+  <div class="live-inner">
+    <div class="live-top">
+      <span class="chip" id="brLiveSetup">Phone on chest</span>
+      <span class="live-timer" id="brLiveTimer">Warm-up</span>
+    </div>
+    <p class="live-status" id="brLiveStatus" aria-live="polite">Starting the sensors…</p>
+    <div class="guide" id="brGuideViz" hidden>
+      <div class="guide-ring"><div class="guide-disc" id="brGuideDisc"></div></div>
+      <span id="brGuideText">Breathe in</span>
+    </div>
+    <div class="live-hero">
+      <span class="hero-val"><span class="hero-num" id="brLiveRate">--</span><span class="hero-unit">breaths/min</span></span>
+    </div>
+    <p class="live-note" id="brLiveAgree">The first estimate appears after 20 seconds.</p>
+    <div class="method-live">
+      <div class="ml-head"><b>Motion sensors</b><span class="ml-val" id="brLiveMotionVal">--</span><span class="pill" id="brLiveMotionPill" data-q="none"></span></div>
+      <div class="live-wave"><canvas id="brLiveMotion" aria-label="Live motion sensor trace"></canvas></div>
+      <span class="live-note" id="brLiveMotionNote"></span>
+    </div>
+    <div class="method-live">
+      <div class="ml-head"><b>Sonar</b><span class="ml-val" id="brLiveSonarVal">--</span><span class="pill" id="brLiveSonarPill" data-q="none"></span></div>
+      <div class="live-wave"><canvas id="brLiveSonar" aria-label="Live sonar trace"></canvas></div>
+      <span class="live-note" id="brLiveSonarNote"></span>
+    </div>
+    <div class="track" aria-hidden="true"><div class="bar" id="brLiveBar"></div></div>
+    <div class="live-actions">
+      <button type="button" class="btn" id="brStop">Stop</button>
     </div>
   </div>
 </div>
@@ -557,7 +826,7 @@ const DSP = (() => {
     return SECS[key];
   }
   function bandpass(x, fs, lo, hi) {
-    const n = x.length, pad = Math.min(n - 1, Math.round(2 * fs));
+    const n = x.length, pad = Math.min(n - 1, Math.round(fs * Math.max(2, 1.5 / lo)));
     const ext = new Float64Array(n + 2 * pad);
     for (let i = 0; i < pad; i++) ext[i] = 2 * x[0] - x[pad - i];
     for (let i = 0; i < n; i++) ext[pad + i] = x[i];
@@ -571,7 +840,7 @@ const DSP = (() => {
     return y.slice(pad, pad + n);
   }
 
-  function spectrum(y, fs, fmin, fmax, df) {
+  function spectrum(y, fs, fmin, fmax, df, bw1 = 0.1, bw2 = 0.15) {
     const n = y.length;
     let mean = 0; for (let i = 0; i < n; i++) mean += y[i]; mean /= n;
     const w = new Float64Array(n);
@@ -605,7 +874,7 @@ const DSP = (() => {
     let sig = 0, tot = 0;
     for (let i = 0; i < f.length; i++) {
       tot += p[i];
-      if (Math.abs(f[i] - peak) <= 0.1 || Math.abs(f[i] - 2 * peak) <= 0.15) sig += p[i];
+      if (Math.abs(f[i] - peak) <= bw1 || Math.abs(f[i] - 2 * peak) <= bw2) sig += p[i];
     }
     const snrDb = 10 * Math.log10(Math.max(sig, 1e-12) / Math.max(1e-12, tot - sig));
     return { f, p, peakHz: peak, peakIdx: k, snrDb };
@@ -634,12 +903,12 @@ const DSP = (() => {
     return { idx, times };
   }
 
-  function beatStats(times) {
+  function beatStats(times, lo = 0.7, hi = 1.3) {
     const ibi = [];
     for (let i = 1; i < times.length; i++) ibi.push(times[i] - times[i - 1]);
     if (ibi.length < 3) return null;
     const s = [...ibi].sort((a, b) => a - b), med = s[s.length >> 1];
-    const valid = ibi.map(v => v >= 0.7 * med && v <= 1.3 * med);
+    const valid = ibi.map(v => v >= lo * med && v <= hi * med);
     const good = ibi.filter((v, i) => valid[i]);
     if (!good.length) return null;
     const mean = good.reduce((a, b) => a + b, 0) / good.length;
@@ -719,9 +988,322 @@ const DSP = (() => {
     };
   }
 
-  return { makeExample, analyze, quick, resample, bandpass, spectrum, detectBeats, beatStats, FS, LO, HI };
+  // ================= Breathing =================
+  // Both methods end up as a 10 Hz signal band-passed to 0.1-0.7 Hz (6-42 breaths/min).
+  const BFS = 10, BLO = 0.1, BHI = 0.7;
+  const BQ_GOOD = 0.6, BQ_FAIR = 0.45;
+
+  function sliceRange(t, from, to) {
+    let a = 0; while (a < t.length && t[a] < from) a++;
+    let b = t.length; while (b > a && t[b - 1] > to) b--;
+    return [a, b];
+  }
+
+  // Principal component of k equally long signals. `ref` keeps the sign stable between calls.
+  function pca(arrs, ref) {
+    const k = arrs.length, n = arrs[0].length;
+    const C = Array.from({ length: k }, () => new Float64Array(k));
+    for (let i = 0; i < n; i++) {
+      for (let a = 0; a < k; a++) { const va = arrs[a][i]; for (let b = a; b < k; b++) C[a][b] += va * arrs[b][i]; }
+    }
+    for (let a = 0; a < k; a++) for (let b = 0; b < a; b++) C[a][b] = C[b][a];
+    let v = new Float64Array(k).fill(1 / Math.sqrt(k));
+    for (let it = 0; it < 60; it++) {
+      const w = new Float64Array(k);
+      for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) w[a] += C[a][b] * v[b];
+      const nrm = Math.hypot(...w);
+      if (!(nrm > 0)) break;
+      v = w.map(x => x / nrm);
+    }
+    if (ref && ref.length === k) {
+      let d = 0; for (let a = 0; a < k; a++) d += v[a] * ref[a];
+      if (d < 0) v = v.map(x => -x);
+    }
+    const y = new Float64Array(n);
+    for (let i = 0; i < n; i++) { let s = 0; for (let a = 0; a < k; a++) s += v[a] * arrs[a][i]; y[i] = s; }
+    return { y, v };
+  }
+
+  function unwrap(ph) {
+    const out = new Float64Array(ph.length);
+    let off = 0; out[0] = ph[0];
+    for (let i = 1; i < ph.length; i++) {
+      const d = ph[i] - ph[i - 1];
+      if (d > Math.PI) off -= 2 * Math.PI; else if (d < -Math.PI) off += 2 * Math.PI;
+      out[i] = ph[i] + off;
+    }
+    return out;
+  }
+
+  // Least-squares circle through I/Q points. Its centre is the static echo (speaker leakage, walls),
+  // so the angle around it tracks the moving echo from your chest.
+  function circleFit(x, y) {
+    const n = x.length;
+    let mx = 0, my = 0;
+    for (let i = 0; i < n; i++) { mx += x[i]; my += y[i]; }
+    mx /= n; my /= n;
+    let Suu = 0, Svv = 0, Suv = 0, Suuu = 0, Svvv = 0, Suvv = 0, Svuu = 0;
+    for (let i = 0; i < n; i++) {
+      const u = x[i] - mx, v = y[i] - my;
+      Suu += u * u; Svv += v * v; Suv += u * v;
+      Suuu += u * u * u; Svvv += v * v * v; Suvv += u * v * v; Svuu += v * u * u;
+    }
+    const det = Suu * Svv - Suv * Suv;
+    if (!(Math.abs(det) > 1e-30)) return null;
+    const b1 = 0.5 * (Suuu + Suvv), b2 = 0.5 * (Svvv + Svuu);
+    const uc = (b1 * Svv - b2 * Suv) / det, vc = (Suu * b2 - Suv * b1) / det;
+    return { cx: uc + mx, cy: vc + my, r: Math.sqrt(uc * uc + vc * vc + (Suu + Svv) / n) };
+  }
+
+  const bp = (x) => bandpass(x, BFS, BLO, BHI);
+
+  // How strongly the signal repeats itself one breath later (1 = perfectly regular, ~0.2 = noise).
+  function periodicity(y, fs, f) {
+    const n = y.length;
+    let e0 = 0; for (let i = 0; i < n; i++) e0 += y[i] * y[i];
+    if (!(e0 > 0)) return 0;
+    const L = fs / f;
+    let top = -1;
+    for (let lag = Math.max(1, Math.floor(L * 0.8)); lag <= Math.min(n - 2, Math.ceil(L * 1.2)); lag++) {
+      let s = 0; for (let i = 0; i < n - lag; i++) s += y[i] * y[i + lag];
+      const r = (s / e0) * (n / (n - lag));
+      if (r > top) top = r;
+    }
+    return Math.max(0, Math.min(1, top));
+  }
+
+  function breathRhythm(y) {
+    const spec = spectrum(y, BFS, BLO, BHI, 1 / 600, 0.04, 0.06);
+    const beats = detectBeats(y, BFS, spec.peakHz);
+    const stats = beatStats(beats.times, 0.5, 1.6);
+    const specRate = spec.peakHz * 60;
+    const agree = !!stats && Math.abs(stats.bpm - specRate) / specRate < 0.15;
+    const snr = spec.snrDb;
+    const per = periodicity(y, BFS, spec.peakHz);
+    const quality = (per >= BQ_GOOD && agree) ? 'good' : (per >= BQ_FAIR && agree) ? 'fair' : 'poor';
+    // Counting breaths matches how a person checks the rate, so use the count when it is consistent.
+    return { spec, beats, stats, specRate, agree, snr, periodicity: per, quality, rate: agree ? stats.bpm : specRate };
+  }
+
+  function best(cands) {
+    let top = null, topScore = -Infinity;
+    for (const c of cands) {
+      const r = breathRhythm(c.y);
+      Object.assign(r, c);
+      const score = r.periodicity + r.snr / 20;
+      if (score > topScore) { top = r; topScore = score; }
+    }
+    return top;
+  }
+
+  // Motion: gravity's direction tilts slightly as the chest rises (accelerometer),
+  // and the phone rotates slightly (gyroscope, integrated to an angle).
+  function motionCands(m, from, to, ref, minSpan = 12) {
+    if (!m || m.t.length < 30) return null;
+    const [a, b] = sliceRange(m.t, from, to);
+    if (b - a < 30 || m.t[b - 1] - m.t[a] < minSpan) return null;
+    const t = m.t.slice(a, b);
+    const rs = (arr) => resample(t, arr, BFS);
+    const acc = pca([m.ax, m.ay, m.az].map(arr => bp(rs(arr.slice(a, b)))), ref && ref.acc);
+    const cands = [{ y: acc.y, v: acc.v, source: 'accelerometer', kind: 'acc', t0: t[0] }];
+    let finite = 0;
+    for (let i = a; i < b; i++) if (Number.isFinite(m.gx[i])) finite++;
+    if (finite > 0.8 * (b - a)) {
+      const ang = [m.gx, m.gy, m.gz].map(g => {
+        const out = new Array(b - a); let s = 0;
+        for (let i = a; i < b; i++) {
+          const dt = i > a ? m.t[i] - m.t[i - 1] : 0;
+          s += (Number.isFinite(g[i]) ? g[i] : 0) * dt;
+          out[i - a] = s;
+        }
+        return out;
+      });
+      const gy = pca(ang.map(arr => bp(rs(arr))), ref && ref.gyr);
+      cands.push({ y: gy.y, v: gy.v, source: 'gyroscope', kind: 'gyr', t0: t[0] });
+    }
+    return cands;
+  }
+
+  // Sonar: the speaker plays a steady ultrasonic tone and the microphone hears it back.
+  // I/Q are the tone's in-phase and quadrature parts; chest movement rotates the echo's phase.
+  function sonarIQ(s, from, to, minSpan = 12) {
+    if (!s || !s.i.length) return null;
+    const D = Math.max(1, Math.round(s.rate / BFS));
+    const i0 = Math.max(0, Math.ceil(from * s.rate));
+    const i1 = Math.min(s.i.length, Math.floor(to * s.rate));
+    const n = Math.floor((i1 - i0) / D);
+    if (n < minSpan * BFS) return null;
+    const I = new Float64Array(n), Q = new Float64Array(n);
+    for (let k = 0; k < n; k++) {
+      let si = 0, sq = 0;
+      for (let j = 0; j < D; j++) { si += s.i[i0 + k * D + j]; sq += s.q[i0 + k * D + j]; }
+      I[k] = si / D; Q[k] = sq / D;
+    }
+    return { I, Q, t0: (i0 + D / 2) / s.rate, n };
+  }
+
+  function sonarCands(s, from, to, ref, minSpan) {
+    const iq = sonarIQ(s, from, to, minSpan);
+    if (!iq) return null;
+    const { I, Q, t0, n } = iq;
+    const proj = pca([bp(I), bp(Q)], ref && ref.proj);
+    const cands = [{ y: proj.y, v: proj.v, source: 'echo strength', kind: 'proj', t0 }];
+    const fit = circleFit(I, Q);
+    if (fit && Number.isFinite(fit.r) && fit.r > 0) {
+      cands.push({ y: bp(unwrap(Float64Array.from(I, (v, k) => Math.atan2(Q[k] - fit.cy, v - fit.cx)))), source: 'echo phase', kind: 'phase', t0 });
+    }
+    let mi = 0, mq = 0;
+    for (let k = 0; k < n; k++) { mi += I[k]; mq += Q[k]; }
+    mi /= n; mq /= n;
+    cands.push({ y: bp(unwrap(Float64Array.from(I, (v, k) => Math.atan2(Q[k] - mq, v - mi)))), source: 'echo phase', kind: 'phase2', t0 });
+    const mags = Array.from(I, (v, k) => Math.hypot(v, Q[k]));
+    return { cands, level: median(mags) * 2 };
+  }
+
+  function analyzeMotion(m, from, to) {
+    const c = motionCands(m, from, to);
+    return c ? best(c) : null;
+  }
+  function analyzeSonar(s, from, to) {
+    const c = sonarCands(s, from, to);
+    if (!c) return null;
+    const r = best(c.cands);
+    r.level = c.level;
+    return r;
+  }
+
+  function combine(m, s) {
+    const ok = (r) => r && (r.quality === 'good' || r.quality === 'fair');
+    if (ok(m) && ok(s)) {
+      const diff = Math.abs(m.rate - s.rate);
+      const tol = Math.max(2, 0.12 * (m.rate + s.rate) / 2);
+      if (diff <= tol) {
+        const wm = Math.pow(10, m.snr / 10), ws = Math.pow(10, s.snr / 10);
+        return { rate: (m.rate * wm + s.rate * ws) / (wm + ws), status: 'agree', primary: wm >= ws ? 'motion' : 'sonar', diff };
+      }
+      const p = m.snr >= s.snr ? 'motion' : 'sonar';
+      return { rate: (p === 'motion' ? m : s).rate, status: 'disagree', primary: p, diff };
+    }
+    if (ok(m)) return { rate: m.rate, status: 'single', primary: 'motion', diff: null };
+    if (ok(s)) return { rate: s.rate, status: 'single', primary: 'sonar', diff: null };
+    const pool = [m && { r: m, k: 'motion' }, s && { r: s, k: 'sonar' }].filter(Boolean).sort((a, b) => b.r.snr - a.r.snr);
+    return pool.length ? { rate: pool[0].r.rate, status: 'none', primary: pool[0].k, diff: null } : null;
+  }
+
+  function analyzeBreath(d) {
+    const settle = d.settle || 3;
+    const motion = analyzeMotion(d.motion, settle, Infinity);
+    const sonar = analyzeSonar(d.sonar, settle, Infinity);
+    if (!motion && !sonar) return { error: 'Not enough data was recorded. Measure for at least 30 seconds.' };
+    const combined = combine(motion, sonar);
+    const mEnd = d.motion && d.motion.t.length ? d.motion.t[d.motion.t.length - 1] : 0;
+    const sEnd = d.sonar && d.sonar.i.length ? d.sonar.i.length / d.sonar.rate : 0;
+    const dur = Math.max(mEnd, sEnd);
+    const warnings = [];
+    if (d.motionWanted && !motion) warnings.push('The motion sensors sent no data. In Chrome, check that Motion sensors are allowed for this site.');
+    if (d.sonarWanted && !d.sonar) warnings.push('The microphone was not available, so the sonar could not run. Allow microphone access for this site to use it.');
+    if (sonar && sonar.level < 3e-4) warnings.push('The sonar tone barely reached the microphone. Turn the media volume up and keep the bottom of the phone uncovered.');
+    if (combined && combined.status === 'disagree') warnings.push('The two methods disagree by ' + combined.diff.toFixed(1) + ' breaths/min. The result uses the method with the stronger signal.');
+    if (combined && combined.status === 'none') warnings.push('Neither method found a clear breathing rhythm. Lie still, breathe normally, or try the breathing guide.');
+    return { motion, sonar, combined, dur, settle, analyzed: Math.max(0, dur - settle), warnings };
+  }
+
+  // Display traces for the live view (sign kept stable with `ref`).
+  function traceMotion(m, from, to, ref) {
+    const c = motionCands(m, from, to, ref, 4);
+    if (!c) return null;
+    const kind = ref && ref.kind === 'gyr' && c[1] ? 1 : 0;
+    return { y: c[kind].y, t0: c[kind].t0, acc: c[0].v, gyr: c[1] && c[1].v };
+  }
+  function traceSonar(s, from, to, ref) {
+    const c = sonarCands(s, from, to, ref, 4);
+    if (!c) return null;
+    const want = (ref && ref.kind) || 'proj';
+    const pick = c.cands.find(x => x.kind === want) || c.cands[0];
+    return { y: pick.y, t0: pick.t0, proj: c.cands[0].v, level: c.level };
+  }
+
+  function gauss(rng) {
+    let u = 0, v = 0;
+    while (u === 0) u = rng();
+    while (v === 0) v = rng();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  // Synthetic breathing session: about 14 breaths/min with natural breath-to-breath variation.
+  function makeBreathExample(opts = {}) {
+    const rng = mulberry32(opts.seed || 11);
+    const rate = opts.rate || 14, dur = opts.dur || 63;
+    const motionNoise = opts.motionNoise ?? 0.015, tilt = opts.tilt ?? 0.006;
+    const sweepMm = opts.sweepMm ?? 4, iqNoise = opts.iqNoise ?? 0.00025, lambdaMm = 343000 / (opts.f0 || 19000);
+    const cycles = [];
+    let tc = -2;
+    while (tc < dur + 10) {
+      const L = (60 / rate) * (1 + (opts.variability ?? 0.24) * (rng() - 0.5));
+      cycles.push({ start: tc, len: L, amp: 1 + 0.3 * (rng() - 0.5) });
+      tc += L;
+    }
+    let ci = 0;
+    const disp = (t) => {
+      while (ci < cycles.length - 1 && cycles[ci + 1].start <= t) ci++;
+      while (ci > 0 && cycles[ci].start > t) ci--;
+      const c = cycles[ci], p = (t - c.start) / c.len;
+      const v = p < 0.4 ? (1 - Math.cos(Math.PI * p / 0.4)) / 2 : (1 + Math.cos(Math.PI * (p - 0.4) / 0.6)) / 2;
+      return v * c.amp;
+    };
+    const motion = { t: [], ax: [], ay: [], az: [], gx: [], gy: [], gz: [] };
+    let t = 0, prevTh = null;
+    while (t < dur) {
+      const th = 0.05 + tilt * disp(t) + 0.002 * Math.sin(2 * Math.PI * 0.01 * t);
+      const bcg = 0.004 * Math.sin(2 * Math.PI * 1.2 * t);
+      motion.t.push(t);
+      motion.ax.push(9.81 * Math.sin(th) + bcg + motionNoise * gauss(rng));
+      motion.ay.push(0.3 + motionNoise * gauss(rng));
+      motion.az.push(9.81 * Math.cos(th) + motionNoise * gauss(rng));
+      const dt = 1 / 60 * (0.85 + 0.3 * rng());
+      const rateDeg = prevTh === null ? 0 : (th - prevTh) / dt * 180 / Math.PI;
+      motion.gx.push(0.05 * gauss(rng)); motion.gy.push(rateDeg + 0.08 * gauss(rng)); motion.gz.push(0.05 * gauss(rng));
+      prevTh = th;
+      t += dt;
+    }
+    ci = 0;
+    const sonar = { rate: 100, i: [], q: [], lvl: [] };
+    const S = [0.012 * Math.cos(0.7), 0.012 * Math.sin(0.7)], A = 0.003, k = 4 * Math.PI / lambdaMm;
+    for (let j = 0; j < dur * 100; j++) {
+      const tt = j / 100;
+      const ph = 0.4 + k * sweepMm * disp(tt);
+      sonar.i.push(S[0] + A * Math.cos(ph) + iqNoise * gauss(rng));
+      sonar.q.push(S[1] + A * Math.sin(ph) + iqNoise * gauss(rng));
+      sonar.lvl.push(0.02);
+    }
+    return { motion: opts.noMotion ? null : motion, sonar: opts.noSonar ? null : sonar, settle: 3, motionWanted: true, sonarWanted: true };
+  }
+
+  const breath = {
+    FS: BFS, LO: BLO, HI: BHI,
+    analyze: analyzeBreath, analyzeMotion, analyzeSonar, combine,
+    traceMotion, traceSonar, makeExample: makeBreathExample
+  };
+
+  return { makeExample, analyze, quick, resample, bandpass, spectrum, detectBeats, beatStats, FS, LO, HI, breath };
 })();
 // DSP-END
+
+// Validation log, kept in this browser only.
+const VLog = (() => {
+  const KEY = 'phone-vitals-validation-v1';
+  const load = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const persist = (rows) => { try { localStorage.setItem(KEY, JSON.stringify(rows)); return true; } catch (e) { return false; } };
+  let rows = load();
+  const subs = [];
+  const notify = () => subs.forEach(f => { try { f(); } catch (e) {} });
+  return {
+    all: () => rows.slice(),
+    add(row) { rows.push(row); if (rows.length > 300) rows.shift(); const ok = persist(rows); notify(); return ok; },
+    clear() { rows = []; persist(rows); notify(); },
+    onChange(f) { subs.push(f); }
+  };
+})();
 
 (() => {
   const $ = (sel) => document.querySelector(sel);
@@ -965,7 +1547,8 @@ const DSP = (() => {
       tip.hidden = true;
     };
     const show = (e) => {
-      const ps = plotState[key]; if (!ps) return;
+      const ps = typeof key === 'function' ? key() : plotState[key];
+      if (!ps) return;
       const rect = overlay.getBoundingClientRect();
       const hit = ps.hit(e.clientX - rect.left);
       clear();
@@ -973,7 +1556,7 @@ const DSP = (() => {
       const T = tokens(); const ctx = overlay.getContext('2d');
       ctx.strokeStyle = T.ink3; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(Math.round(hit.px) + 0.5, ps.top); ctx.lineTo(Math.round(hit.px) + 0.5, ps.bottom); ctx.stroke();
-      dot(ctx, hit.px, hit.py, hit.color === 'accent' ? T.accent : T.trace, key === 'strip' ? T.paper : T.surface);
+      dot(ctx, hit.px, hit.py, hit.color === 'accent' ? T.accent : T.trace, (key === 'strip' || ps.ring === 'paper') ? T.paper : T.surface);
       tip.innerHTML = hit.html; tip.hidden = false;
       const tw = tip.offsetWidth, th = tip.offsetHeight;
       const visRight = scroller ? scroller.scrollLeft + scroller.clientWidth : ps.W;
@@ -1024,6 +1607,9 @@ const DSP = (() => {
       const span = document.createElement('span'); span.textContent = w; li.appendChild(span);
       ul.appendChild(li);
     }
+    const ref = $('#pulseRef');
+    ref.hidden = state.source !== 'live';
+    if (!ref.hidden) { $('#pulseRefIn').value = ''; $('#pulseRefSave').disabled = false; $('#pulseRefMsg').textContent = ''; }
     $('#csvFallback').hidden = true;
     $('#copyMsg').textContent = 'Paste into a spreadsheet or Python to try your own filters.';
     drawAll();
@@ -1337,6 +1923,7 @@ const DSP = (() => {
     const res = DSP.analyze(seg);
     if (res.error) { showError(res.error); return; }
     state.samples = seg; state.result = res; state.source = 'live';
+    state.mode = mode === 'front' ? 'Front camera' : 'Back camera';
     state.label = (mode === 'front' ? 'Front camera + screen light' : 'Back camera + flash') + ', ' +
       new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     render();
@@ -1388,6 +1975,20 @@ const DSP = (() => {
     } catch (e) { fallback(); }
   });
 
+  $('#pulseRefSave').addEventListener('click', () => {
+    const v = parseFloat($('#pulseRefIn').value);
+    if (!(v >= 30 && v <= 220)) { $('#pulseRefMsg').textContent = 'Enter the oximeter reading in beats per minute, between 30 and 220.'; return; }
+    const page = Math.round(state.result.bpmSpec);
+    const ok = VLog.add({ ts: Date.now(), kind: 'pulse', setup: state.mode || 'Camera', page, motion: null, sonar: null, ref: v });
+    const d = page - v;
+    $('#pulseRefMsg').textContent = (ok ? 'Saved. ' : 'Added for this visit, but this browser would not store it. ') +
+      'Page ' + page + ', oximeter ' + v + ', difference ' + (d > 0 ? '+' : '') + d + ' BPM.';
+    $('#pulseRefSave').disabled = true;
+  });
+
+  // Shared drawing helpers for the breathing tab.
+  window.FPLUI = { prep, tokens, dot, setPill, ICONS, QUALITY_TEXT, niceTicks, nearestIndex, attachHover, redrawPulse: () => drawAll() };
+
   // ---------- Boot ----------
   if (!window.isSecureContext) $('#insecureNotice').hidden = false;
   attachHover('#rawPlot', 'raw');
@@ -1404,6 +2005,683 @@ const DSP = (() => {
   if ('ResizeObserver' in window) {
     const ro = new ResizeObserver(redraw);
     ro.observe($('#rawPlot')); ro.observe($('#specPlot'));
+  } else {
+    window.addEventListener('resize', redraw);
+  }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+})();
+</script>
+<script>
+// ================= Breathing tab, tabs and validation log =================
+(() => {
+  const { prep, tokens, dot, ICONS, QUALITY_TEXT, nearestIndex, attachHover } = window.FPLUI;
+  const $ = (s) => document.querySelector(s);
+  const B = DSP.breath;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SETTLE = 3, WINDOW = 60, MIN_STOP = 30, LIVE_WIN = 30;
+  const PLACE_LABEL = { chest: 'Phone on chest', front: 'Phone in front of chest' };
+  const bs = { data: null, result: null, source: 'example', label: '', guide: 0, placement: 'chest', countWindow: 60 };
+  const bplot = {};
+  const round1 = (x) => Math.round(x * 10) / 10;
+
+  function pillHTML(q, text) {
+    return '<span class="pill" data-q="' + q + '">' + ICONS[q] + '<span>' + text + '</span></span>';
+  }
+  function methodHTML(r, missing) {
+    if (!r) return '<span class="ml-val">' + missing + '</span>';
+    return '<span class="ml-val">' + r.rate.toFixed(1) + '/min</span>' + pillHTML(r.quality, QUALITY_TEXT[r.quality]);
+  }
+  function crossText(c) {
+    if (!c) return { q: 'none', short: 'No result', long: '' };
+    const name = c.primary === 'motion' ? 'the motion sensors' : 'the sonar';
+    if (c.status === 'agree') return { q: 'good', short: 'Agree, ' + c.diff.toFixed(1) + ' apart', long: 'Motion sensors and sonar agree within ' + c.diff.toFixed(1) + ' breaths/min.' };
+    if (c.status === 'disagree') return { q: 'fair', short: 'Disagree by ' + c.diff.toFixed(1), long: 'The methods disagree, so this uses ' + name + ', which had the cleaner signal.' };
+    if (c.status === 'single') return { q: 'fair', short: 'One method only', long: 'Only ' + name + ' gave a clear signal, so there is no cross-check.' };
+    return { q: 'poor', short: 'No clear rhythm', long: 'Neither method found a clear rhythm. Low confidence.' };
+  }
+
+  // ---------- Results ----------
+  function renderB() {
+    const r = bs.result, c = r.combined;
+    $('#brRate').textContent = c ? c.rate.toFixed(1) : '--';
+    const ct = crossText(c);
+    $('#brSub').textContent = ct.long;
+    $('#brMotion').innerHTML = methodHTML(r.motion, 'No data');
+    $('#brSonar').innerHTML = methodHTML(r.sonar, 'No data');
+    $('#brAgree').innerHTML = pillHTML(ct.q, ct.short);
+    const prim = c ? r[c.primary] : null;
+    $('#brCount').textContent = prim ? prim.beats.idx.length + ' (' + (c.primary === 'motion' ? 'motion sensors' : 'sonar') + ')' : '--';
+    $('#brGuide').textContent = bs.guide ? bs.guide + ' breaths/min' : 'Off';
+    $('#brDur').textContent = Math.round(r.analyzed) + ' s analyzed';
+    $('#brMotionSrc').textContent = r.motion ? r.motion.source : 'motion sensors';
+    $('#brSonarSrc').textContent = r.sonar && r.sonar.kind === 'proj' ? 'strength' : 'phase';
+
+    const chip = $('#brChip');
+    if (bs.source === 'example') {
+      chip.dataset.kind = 'example'; chip.textContent = 'Example result';
+      $('#brSourceText').textContent = 'A synthetic session at about 14 breaths/min, shown until you take your first measurement.';
+      $('#brExampleBtn').hidden = true;
+    } else {
+      chip.dataset.kind = 'live'; chip.textContent = 'Your measurement';
+      $('#brSourceText').textContent = bs.label;
+      $('#brExampleBtn').hidden = false;
+    }
+    const ul = $('#brWarnings');
+    ul.innerHTML = '';
+    for (const w of r.warnings) {
+      const li = document.createElement('li');
+      li.innerHTML = ICONS.warn;
+      const span = document.createElement('span'); span.textContent = w; li.appendChild(span);
+      ul.appendChild(li);
+    }
+
+    const ref = $('#brRef');
+    ref.hidden = bs.source !== 'live';
+    if (!ref.hidden) {
+      const full = bs.countWindow >= WINDOW - 0.5;
+      $('#brRefLabel').textContent = 'Breaths you counted between the chimes' + (full ? '' : ' (' + Math.round(bs.countWindow) + ' seconds)');
+      $('#brRefIn').value = bs.guide ? String(Math.round(bs.guide * bs.countWindow / 60)) : '';
+      $('#brRefMsg').textContent = bs.guide ? 'Filled in from the guide pace. Change it if you counted a different number.' : '';
+      $('#brRefSave').disabled = false;
+    }
+    drawB();
+  }
+
+  function drawTrace(sel, key, res) {
+    const el = $(sel);
+    const W = Math.max(260, el.clientWidth), H = 150;
+    const m = { l: 10, r: 10, t: 12, b: 24 };
+    const ctx = prep(el.querySelector('.base'), W, H);
+    prep(el.querySelector('.overlay'), W, H);
+    const T = tokens();
+    const pw = W - m.l - m.r, ph = H - m.t - m.b;
+    if (!res) {
+      ctx.strokeStyle = T.rule; ctx.lineWidth = 1;
+      ctx.strokeRect(m.l + 0.5, m.t + 0.5, pw - 1, ph - 1);
+      ctx.fillStyle = T.ink3; ctx.font = '14px ' + getComputedStyle(document.body).fontFamily;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('No data from this method in this measurement', W / 2, m.t + ph / 2);
+      bplot[key] = null;
+      return;
+    }
+    const y = res.y, n = y.length, t0 = res.t0, t1 = t0 + (n - 1) / B.FS;
+    const xs = (t) => m.l + ((t - t0) / (t1 - t0)) * pw;
+    const abs = Array.from(y, Math.abs).sort((a, b) => a - b);
+    const amp = abs[Math.floor(abs.length * 0.98)] || 1;
+    const mid = m.t + ph / 2, sc = (ph * 0.45) / amp;
+    const ys = (v) => Math.min(m.t + ph, Math.max(m.t, mid - v * sc));
+
+    ctx.lineWidth = 1; ctx.strokeStyle = T.rule;
+    ctx.beginPath(); ctx.moveTo(m.l, Math.round(mid) + 0.5); ctx.lineTo(W - m.r, Math.round(mid) + 0.5); ctx.stroke();
+    ctx.font = T.mono; ctx.fillStyle = T.ink3; ctx.textBaseline = 'top';
+    for (let s = Math.ceil(t0 / 10) * 10; s <= t1 + 1e-6; s += 10) {
+      const x = xs(s);
+      ctx.strokeStyle = T.rule; ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, m.t); ctx.lineTo(Math.round(x) + 0.5, m.t + ph); ctx.stroke();
+      ctx.textAlign = x < m.l + 14 ? 'left' : (x > W - m.r - 14 ? 'right' : 'center');
+      ctx.fillText(s + ' s', x, H - m.b + 7);
+    }
+    ctx.strokeStyle = T.trace; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) { const x = xs(t0 + i / B.FS), v = ys(y[i]); i ? ctx.lineTo(x, v) : ctx.moveTo(x, v); }
+    ctx.stroke();
+    const bt = res.beats;
+    bt.idx.forEach((idx, k) => dot(ctx, xs(t0 + bt.times[k]), ys(y[idx]), T.accent, T.surface));
+
+    bplot[key] = {
+      W, H, top: m.t, bottom: m.t + ph,
+      hit(x) {
+        if (x < m.l - 4 || x > W - m.r + 4) return null;
+        const t = t0 + ((x - m.l) / pw) * (t1 - t0);
+        const i = Math.max(0, Math.min(n - 1, Math.round((t - t0) * B.FS)));
+        let html = '<b>' + (t0 + i / B.FS).toFixed(1) + ' s</b>';
+        let px = xs(t0 + i / B.FS), py = ys(y[i]), color = null;
+        if (bt.times.length) {
+          const k = nearestIndex(bt.times, t - t0);
+          if (Math.abs(bt.times[k] - (t - t0)) < 0.6) {
+            px = xs(t0 + bt.times[k]); py = ys(y[bt.idx[k]]); color = 'accent';
+            html += '<br>Breath ' + (k + 1);
+            if (k > 0) html += '<br><span class="muted">' + (bt.times[k] - bt.times[k - 1]).toFixed(1) + ' s after previous</span>';
+          }
+        }
+        return { px, py, html, color };
+      }
+    };
+  }
+
+  function drawB() {
+    if (!bs.result) return;
+    drawTrace('#brMotionPlot', 'motion', bs.result.motion);
+    drawTrace('#brSonarPlot', 'sonar', bs.result.sonar);
+  }
+
+  // ================= Live measurement =================
+  const WORKLET = `
+class PhoneVitalsSonar extends AudioWorkletProcessor {
+  constructor(options) {
+    super();
+    const o = options.processorOptions || {};
+    const w = 2 * Math.PI * (o.f0 || 19000) / sampleRate;
+    this.cw = Math.cos(w); this.sw = Math.sin(w); this.c = 1; this.s = 0;
+    this.dec = Math.max(1, Math.round(sampleRate / (o.rate || 100)));
+    this.k = 0; this.si = 0; this.sq = 0; this.ss = 0;
+    this.gain = 0; this.target = o.gain || 0.5; this.step = 1 / (0.4 * sampleRate);
+    this.out = [];
+    this.port.onmessage = (e) => { if (e.data === 'fade') this.target = 0; };
+  }
+  process(inputs, outputs) {
+    const input = inputs[0] && inputs[0][0];
+    const out = outputs[0];
+    const n = out[0].length;
+    for (let i = 0; i < n; i++) {
+      if (this.gain < this.target) this.gain = Math.min(this.target, this.gain + this.step);
+      else if (this.gain > this.target) this.gain = Math.max(this.target, this.gain - this.step);
+      const c = this.c, s = this.s;
+      const y = this.gain * s;
+      for (let ch = 0; ch < out.length; ch++) out[ch][i] = y;
+      const x = input ? input[i] : 0;
+      this.si += x * c; this.sq -= x * s; this.ss += x * x;
+      this.c = c * this.cw - s * this.sw; this.s = s * this.cw + c * this.sw;
+      if (++this.k >= this.dec) {
+        this.out.push(this.si / this.k, this.sq / this.k, Math.sqrt(this.ss / this.k));
+        this.k = 0; this.si = 0; this.sq = 0; this.ss = 0;
+      }
+    }
+    const m = Math.hypot(this.c, this.s); this.c /= m; this.s /= m;
+    if (this.out.length >= 30) { this.port.postMessage(new Float32Array(this.out)); this.out = []; }
+    return true;
+  }
+}
+registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
+`;
+  let workletURL = null;
+
+  const L = {
+    running: false, ctx: null, node: null, mic: null, src: null,
+    motion: null, sonar: null, motionOn: false, sonarOn: false, sonarWhy: '',
+    tStart: 0, raf: 0, lastEst: 0, lastDisp: 0,
+    est: { motion: null, sonar: null, combined: null }, refM: null, refS: null,
+    ampM: 0, ampS: 0, dispM: null, dispS: null,
+    placement: 'chest', guide: 0, f0: 19000, guideSeg: -1, chimedStart: false, wl: null,
+    lastStatus: '', pills: {}
+  };
+
+  function micError(e) {
+    const n = e && e.name;
+    if (n === 'NotAllowedError' || n === 'SecurityError') return 'Microphone access was blocked, so the sonar is off. Allow the microphone for this site in Chrome to use it.';
+    if (n === 'NotFoundError') return 'No microphone was found, so the sonar is off.';
+    if (n === 'NotReadableError') return 'The microphone is busy in another app, so the sonar is off.';
+    return 'The sonar could not start' + (e && e.message ? ' (' + e.message + ')' : '') + '.';
+  }
+
+  function chime(freqs, dur = 0.16, gain = 0.09) {
+    const ctx = L.ctx;
+    if (!ctx) return;
+    try {
+      let t = ctx.currentTime + 0.01;
+      for (const f of [].concat(freqs)) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(gain, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t + dur + 0.02);
+        t += dur * 0.9;
+      }
+    } catch (e) { /* sound is optional */ }
+  }
+
+  function onMotion(e) {
+    if (!L.running) return;
+    const a = e.accelerationIncludingGravity;
+    if (!a || a.x == null) return;
+    let now = e.timeStamp;
+    if (!(now > 0) || Math.abs(now - performance.now()) > 5000) now = performance.now();
+    const ts = (now - L.tStart) / 1000;
+    const m = L.motion;
+    if (m.t.length && ts <= m.t[m.t.length - 1]) return;
+    m.t.push(ts); m.ax.push(a.x); m.ay.push(a.y); m.az.push(a.z);
+    const r = e.rotationRate;
+    m.gx.push(r && r.alpha != null ? r.alpha : NaN);
+    m.gy.push(r && r.beta != null ? r.beta : NaN);
+    m.gz.push(r && r.gamma != null ? r.gamma : NaN);
+  }
+
+  function onSonar(ev) {
+    if (!L.running || !L.sonar) return;
+    const a = ev.data, s = L.sonar;
+    for (let k = 0; k + 2 < a.length; k += 3) { s.i.push(a[k]); s.q.push(a[k + 1]); s.lvl.push(a[k + 2]); }
+  }
+
+  function setLivePill(key, q) {
+    if (L.pills[key] === q) return;
+    L.pills[key] = q;
+    const el = $(key === 'motion' ? '#brLiveMotionPill' : '#brLiveSonarPill');
+    el.dataset.q = q;
+    el.innerHTML = ICONS[q] + '<span>' + (q === 'none' ? 'Waiting' : QUALITY_TEXT[q]) + '</span>';
+  }
+
+  function openLive() {
+    $('#brLiveSetup').textContent = PLACE_LABEL[L.placement] + (L.guide ? ' · guide ' + L.guide + '/min' : '');
+    $('#brLiveTimer').textContent = 'Warm-up';
+    $('#brLiveStatus').textContent = 'Starting the sensors…';
+    $('#brLiveRate').textContent = '--';
+    $('#brLiveAgree').textContent = 'The first estimate appears 20 seconds into the measurement.';
+    L.pills = {};
+    for (const k of ['motion', 'sonar']) {
+      const K = k === 'motion' ? 'Motion' : 'Sonar';
+      $('#brLive' + K + 'Val').textContent = '--';
+      $('#brLive' + K + 'Note').textContent = '';
+      setLivePill(k, 'none');
+    }
+    $('#brLiveBar').style.width = '0%';
+    $('#brGuideViz').hidden = !L.guide;
+    $('#brGuideDisc').style.transform = 'scale(0.45)';
+    $('#liveBr').hidden = false;
+    document.body.style.overflow = 'hidden';
+    drawLiveTrace('#brLiveMotion', null, 0, 0);
+    drawLiveTrace('#brLiveSonar', null, 0, 0);
+  }
+
+  async function startB() {
+    showErr('');
+    if (L.running) return;
+    L.placement = $('#placeFront').checked ? 'front' : 'chest';
+    L.guide = +$('#guideSel').value || 0;
+    L.f0 = +$('#toneSel').value || 19000;
+
+    // Create the audio context first, while the tap still counts as a user gesture.
+    let ctx = null;
+    try { ctx = new (window.AudioContext || window.webkitAudioContext)(); ctx.resume(); } catch (e) { ctx = null; }
+    L.ctx = ctx;
+    let motionAllowed = 'DeviceMotionEvent' in window;
+    if (motionAllowed && typeof DeviceMotionEvent.requestPermission === 'function') {
+      try { motionAllowed = (await DeviceMotionEvent.requestPermission()) === 'granted'; } catch (e) { motionAllowed = false; }
+    }
+    openLive();
+
+    L.sonarOn = false; L.sonarWhy = '';
+    if (!ctx || !ctx.audioWorklet) {
+      L.sonarWhy = window.isSecureContext ? 'This browser cannot run the sonar.' : 'The sonar needs the page to be opened from its https:// address.';
+    } else if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      L.sonarWhy = 'This browser cannot use the microphone, so the sonar is off.';
+    } else {
+      try {
+        L.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+        if (!workletURL) workletURL = URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' }));
+        await ctx.audioWorklet.addModule(workletURL);
+        L.src = ctx.createMediaStreamSource(L.mic);
+        L.node = new AudioWorkletNode(ctx, 'phone-vitals-sonar', {
+          numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2],
+          processorOptions: { f0: L.f0, rate: 100, gain: 0.5 }
+        });
+        L.node.port.onmessage = onSonar;
+        L.src.connect(L.node);
+        L.node.connect(ctx.destination);
+        L.sonarOn = true;
+      } catch (e) {
+        L.sonarWhy = micError(e);
+        if (L.mic) { L.mic.getTracks().forEach(t => t.stop()); L.mic = null; }
+      }
+    }
+    if ($('#liveBr').hidden) {
+      // Stopped while a permission prompt was open.
+      if (L.mic) L.mic.getTracks().forEach(t => t.stop());
+      try { ctx && ctx.close(); } catch (e) {}
+      L.mic = null; L.node = null; L.src = null; L.ctx = null;
+      return;
+    }
+
+    L.motionOn = motionAllowed;
+    L.motion = { t: [], ax: [], ay: [], az: [], gx: [], gy: [], gz: [] };
+    L.sonar = L.sonarOn ? { rate: 100, i: [], q: [], lvl: [] } : null;
+    Object.assign(L, {
+      est: { motion: null, sonar: null, combined: null }, refM: null, refS: null,
+      ampM: 0, ampS: 0, dispM: null, dispS: null, lastEst: 0, lastDisp: 0,
+      guideSeg: -1, chimedStart: false, lastStatus: ''
+    });
+    if (L.motionOn) window.addEventListener('devicemotion', onMotion);
+    try { if (navigator.wakeLock) L.wl = await navigator.wakeLock.request('screen'); } catch (e) { L.wl = null; }
+    L.tStart = performance.now();
+    L.running = true;
+    L.raf = requestAnimationFrame(tick);
+  }
+
+  const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, x)));
+  function updateGuide(el) {
+    const cyc = 60 / L.guide, ph = (el % cyc) / cyc, inh = 0.4;
+    const seg = ph < inh ? 0 : 1;
+    const k = Math.floor(el / cyc) * 2 + seg;
+    if (k !== L.guideSeg) {
+      L.guideSeg = k;
+      $('#brGuideText').textContent = seg === 0 ? 'Breathe in' : 'Breathe out';
+      chime(seg === 0 ? 523 : 392, 0.22, 0.05);
+    }
+    const s = seg === 0 ? ease(ph / inh) : 1 - ease((ph - inh) / (1 - inh));
+    $('#brGuideDisc').style.transform = 'scale(' + (0.45 + 0.55 * s).toFixed(3) + ')';
+  }
+
+  function smoothAmp(prev, y) {
+    const tail = Array.from(y, Math.abs).sort((a, b) => a - b);
+    const a = tail[Math.floor(tail.length * 0.95)] || 1;
+    return prev ? prev * 0.85 + a * 0.15 : a;
+  }
+
+  function drawLiveTrace(sel, tr, amp, el) {
+    const cv = $(sel);
+    const W = Math.max(220, cv.parentElement.clientWidth), H = 92;
+    const ctx = prep(cv, W, H);
+    const T = tokens($('#liveBr'));
+    ctx.fillStyle = T.paper; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = T.rule; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, H / 2 + 0.5); ctx.lineTo(W, H / 2 + 0.5); ctx.stroke();
+    if (!tr) return;
+    const pps = W / LIVE_WIN, sc = (H * 0.42) / (amp || 1);
+    ctx.strokeStyle = T.trace; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < tr.y.length; i++) {
+      const x = W - (el - (tr.t0 + i / B.FS)) * pps;
+      if (x < -2) continue;
+      const v = Math.min(H - 2, Math.max(2, H / 2 - tr.y[i] * sc));
+      if (!started) { ctx.moveTo(x, v); started = true; } else ctx.lineTo(x, v);
+    }
+    ctx.stroke();
+  }
+
+  function updateTraces(el) {
+    const from = Math.max(2, el - LIVE_WIN);
+    if (L.motionOn) {
+      const tr = B.traceMotion(L.motion, from, el, L.refM);
+      if (tr) { L.refM = { acc: tr.acc, gyr: tr.gyr, kind: L.est.motion ? L.est.motion.kind : 'acc' }; L.ampM = smoothAmp(L.ampM, tr.y); L.dispM = tr; }
+    }
+    if (L.sonarOn) {
+      const tr = B.traceSonar(L.sonar, from, el, L.refS);
+      if (tr) { L.refS = { proj: tr.proj, kind: L.est.sonar ? L.est.sonar.kind : 'proj' }; L.ampS = smoothAmp(L.ampS, tr.y); L.dispS = tr; }
+    }
+    drawLiveTrace('#brLiveMotion', L.motionOn ? L.dispM : null, L.ampM, el);
+    drawLiveTrace('#brLiveSonar', L.sonarOn ? L.dispS : null, L.ampS, el);
+  }
+
+  function updateEstimates(el) {
+    const from = Math.max(SETTLE, el - LIVE_WIN);
+    const m = L.motionOn ? B.analyzeMotion(L.motion, from, el) : null;
+    const s = L.sonarOn ? B.analyzeSonar(L.sonar, from, el) : null;
+    const c = B.combine(m, s);
+    L.est = { motion: m, sonar: s, combined: c };
+    $('#brLiveRate').textContent = c ? c.rate.toFixed(1) : '--';
+    $('#brLiveAgree').textContent = crossText(c).long;
+    $('#brLiveMotionVal').textContent = m ? m.rate.toFixed(1) + '/min' : '--';
+    $('#brLiveSonarVal').textContent = s ? s.rate.toFixed(1) + '/min' : '--';
+    setLivePill('motion', m ? m.quality : 'none');
+    setLivePill('sonar', s ? s.quality : 'none');
+  }
+
+  function statusUpdate(el, inWin) {
+    let s;
+    if (inWin < 0) s = 'Get settled. The measurement starts in ' + Math.ceil(-inWin) + ' s.';
+    else if (L.guide) s = 'Follow the guide. Breathe in as the circle grows.';
+    else s = 'Breathe normally. If you are checking accuracy, count each breath out until the end chime.';
+    if (s !== L.lastStatus) { L.lastStatus = s; $('#brLiveStatus').textContent = s; }
+    $('#brLiveTimer').textContent = inWin < 0 ? 'Warm-up' : Math.floor(Math.min(WINDOW, inWin)) + ' / ' + WINDOW + ' s';
+    $('#brLiveBar').style.width = (Math.max(0, Math.min(1, inWin / WINDOW)) * 100) + '%';
+    let mNote = '';
+    if (!L.motionOn) mNote = el > 2.5 ? 'No motion data from this device.' : '';
+    else if (L.placement === 'front') mNote = 'Expected to stay weak while the phone rests off your body.';
+    $('#brLiveMotionNote').textContent = mNote;
+    let sNote = L.sonarWhy;
+    if (L.sonarOn && L.dispS) {
+      const lv = L.dispS.level;
+      sNote = 'Tone at the microphone: ' + (lv > 0 ? Math.round(20 * Math.log10(lv)) + ' dB' : 'none') + (lv < 3e-4 ? '. Weak, turn the media volume up.' : '');
+    }
+    $('#brLiveSonarNote').textContent = sNote;
+  }
+
+  function tick() {
+    if (!L.running) return;
+    const el = (performance.now() - L.tStart) / 1000;
+    const inWin = el - SETTLE;
+    if (!L.chimedStart && inWin >= 0) { L.chimedStart = true; chime([660, 880]); }
+    if (L.motionOn && el > 2.5 && L.motion.t.length < 10) { L.motionOn = false; window.removeEventListener('devicemotion', onMotion); }
+    if (el > 3 && !L.motionOn && !L.sonarOn) {
+      const why = L.sonarWhy;
+      cleanupB();
+      showErr('Neither the motion sensors nor the microphone could be used. ' + why);
+      return;
+    }
+    if (L.guide) updateGuide(el);
+    const now = performance.now();
+    if (el > 6 && now - L.lastDisp > 100) { L.lastDisp = now; updateTraces(el); }
+    if (inWin >= 20 && now - L.lastEst > 2000) { L.lastEst = now; updateEstimates(el); }
+    statusUpdate(el, inWin);
+    if (inWin >= WINDOW) { finishB(false); return; }
+    L.raf = requestAnimationFrame(tick);
+  }
+
+  function cleanupB() {
+    L.running = false;
+    cancelAnimationFrame(L.raf);
+    window.removeEventListener('devicemotion', onMotion);
+    const ctx = L.ctx, node = L.node, mic = L.mic, src = L.src;
+    L.ctx = null; L.node = null; L.mic = null; L.src = null;
+    try { if (node) node.port.postMessage('fade'); } catch (e) {}
+    setTimeout(() => {
+      try { if (src) src.disconnect(); } catch (e) {}
+      try { if (node) node.disconnect(); } catch (e) {}
+      if (mic) mic.getTracks().forEach(t => t.stop());
+      try { if (ctx) ctx.close(); } catch (e) {}
+    }, 700);
+    try { if (L.wl) L.wl.release(); } catch (e) {}
+    L.wl = null;
+    $('#liveBr').hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function finishB(early) {
+    if (!L.running) { cleanupB(); return; }
+    const el = (performance.now() - L.tStart) / 1000, inWin = el - SETTLE;
+    const data = {
+      motion: L.motion && L.motion.t.length >= 10 ? L.motion : null,
+      sonar: L.sonar, settle: SETTLE, motionWanted: true, sonarWanted: true
+    };
+    const meta = { placement: L.placement, guide: L.guide };
+    if (inWin > 0) chime([880, 660]);
+    cleanupB();
+    if (early && inWin < MIN_STOP) {
+      showErr(inWin <= 0 ? 'Stopped during the warm-up.' : 'Stopped after ' + Math.floor(inWin) + ' seconds. Measure for at least ' + MIN_STOP + ' seconds to get a result.');
+      return;
+    }
+    const res = B.analyze(data);
+    if (res.error) { showErr(res.error); return; }
+    Object.assign(bs, {
+      data, result: res, source: 'live', guide: meta.guide, placement: meta.placement,
+      countWindow: Math.min(WINDOW, inWin),
+      label: PLACE_LABEL[meta.placement] + (meta.guide ? ', guide ' + meta.guide + '/min' : '') + ', ' +
+        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    renderB();
+    $('#brReadout').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  function showErr(msg) { const e = $('#brError'); e.textContent = msg || ''; e.hidden = !msg; }
+
+  $('#brStart').addEventListener('click', startB);
+  $('#brStop').addEventListener('click', () => finishB(true));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && L.running) {
+      cleanupB();
+      showErr('The measurement stopped because the page went to the background. Press Start to measure again.');
+    }
+  });
+
+  function syncPlace() {
+    const front = $('#placeFront').checked;
+    $('#howtoChest').hidden = front;
+    $('#howtoFront').hidden = !front;
+    $('#brHowtoTitle').textContent = front ? 'Phone in front of chest' : 'Phone on chest';
+  }
+  $('#placeChest').addEventListener('change', syncPlace);
+  $('#placeFront').addEventListener('change', syncPlace);
+
+  $('#brExampleBtn').addEventListener('click', () => {
+    bs.data = B.makeExample(); bs.result = B.analyze(bs.data);
+    Object.assign(bs, { source: 'example', guide: 0, placement: 'chest', countWindow: 60 });
+    renderB();
+  });
+
+  $('#brRefSave').addEventListener('click', () => {
+    const v = parseFloat($('#brRefIn').value);
+    if (!(v > 0 && v <= 80)) { $('#brRefMsg').textContent = 'Enter the number of breaths you counted between the chimes.'; return; }
+    const r = bs.result, c = r.combined;
+    const ref = round1(v * 60 / bs.countWindow);
+    const row = {
+      ts: Date.now(), kind: 'breath', place: bs.placement,
+      setup: PLACE_LABEL[bs.placement] + (bs.guide ? ', guide ' + bs.guide + '/min' : ''),
+      page: c ? round1(c.rate) : null,
+      motion: r.motion ? round1(r.motion.rate) : null, mq: r.motion ? r.motion.quality : null,
+      sonar: r.sonar ? round1(r.sonar.rate) : null, sq: r.sonar ? r.sonar.quality : null,
+      ref
+    };
+    const ok = VLog.add(row);
+    const d = row.page != null ? round1(row.page - ref) : null;
+    $('#brRefMsg').textContent = (ok ? 'Saved. ' : 'Added for this visit, but this browser would not store it. ') +
+      'Page ' + (row.page != null ? row.page.toFixed(1) : '--') + ', reference ' + ref.toFixed(1) + ' breaths/min' +
+      (d != null ? ', difference ' + (d > 0 ? '+' : '') + d.toFixed(1) + '.' : '.');
+    $('#brRefSave').disabled = true;
+  });
+
+  attachHover('#brMotionPlot', () => bplot.motion);
+  attachHover('#brSonarPlot', () => bplot.sonar);
+
+  // ================= Validation log =================
+  const mae = (a) => a.length ? a.reduce((s, x) => s + Math.abs(x), 0) / a.length : null;
+  const fmtN = (v, kind) => v == null ? '–' : (kind === 'pulse' ? String(Math.round(v)) : Number(v).toFixed(1));
+  const signed = (d, kind) => {
+    const a = kind === 'pulse' ? String(Math.round(Math.abs(d))) : Math.abs(d).toFixed(1);
+    return (d > 0 ? '+' : d < 0 ? '−' : '±') + a;
+  };
+  const fmtWhen = (ts) => new Date(ts).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+  function summaryLines(rows) {
+    const out = [];
+    const pulse = rows.filter(r => r.kind === 'pulse' && r.page != null);
+    if (pulse.length) {
+      out.push('Pulse: average difference <strong>' + mae(pulse.map(r => r.page - r.ref)).toFixed(1) + ' BPM</strong> over ' + pulse.length + (pulse.length === 1 ? ' run.' : ' runs.'));
+    }
+    const br = rows.filter(r => r.kind === 'breath');
+    if (br.length) {
+      const part = (list, key) => {
+        const d = list.filter(r => r[key] != null).map(r => r[key] - r.ref);
+        return d.length ? { v: mae(d), n: d.length } : null;
+      };
+      const fmt = (p, name) => p ? name + ' <strong>' + p.v.toFixed(1) + '</strong> (' + p.n + ')' : null;
+      const all = [fmt(part(br, 'page'), 'combined'), fmt(part(br, 'motion'), 'motion'), fmt(part(br, 'sonar'), 'sonar')].filter(Boolean);
+      out.push('Breathing, average difference in breaths/min (runs): ' + all.join(', ') + '.');
+      for (const place of ['chest', 'front']) {
+        const list = br.filter(r => (r.place || 'chest') === place);
+        const pm = part(list, 'motion'), ps = part(list, 'sonar');
+        if (pm && ps && pm.n >= 3 && ps.n >= 3) {
+          const winner = pm.v <= ps.v ? 'motion sensors' : 'sonar';
+          out.push((place === 'chest' ? 'With the phone on your chest' : 'With the phone in front of your chest') +
+            ', the <strong>' + winner + '</strong> come closer to your counts so far (motion ' + pm.v.toFixed(1) + ', sonar ' + ps.v.toFixed(1) + ').');
+        }
+      }
+    }
+    if (!out.length) out.push('No saved comparisons yet. After a measurement, enter your pulse oximeter reading or your breath count and tap Save to log.');
+    return out;
+  }
+
+  function renderLog() {
+    const rows = VLog.all();
+    const body = $('#logBody');
+    body.innerHTML = '';
+    $('#logWrap').hidden = !rows.length;
+    for (const r of rows.slice().reverse()) {
+      const tr = document.createElement('tr');
+      const d = r.page != null ? r.page - r.ref : null;
+      const cells = [fmtWhen(r.ts), r.kind === 'pulse' ? 'Pulse' : 'Breathing', r.setup || '', fmtN(r.page, r.kind), fmtN(r.motion, r.kind), fmtN(r.sonar, r.kind), fmtN(r.ref, r.kind), d == null ? '–' : signed(d, r.kind)];
+      cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i >= 3) td.className = 'num'; tr.appendChild(td); });
+      body.appendChild(tr);
+    }
+    $('#logSummary').innerHTML = summaryLines(rows).map(s => '<p>' + s + '</p>').join('');
+    $('#logCopy').disabled = !rows.length;
+    $('#logClear').disabled = !rows.length;
+  }
+  VLog.onChange(renderLog);
+
+  function logCSV() {
+    const q = (s) => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+    const lines = ['time,measure,setup,page,motion,sonar,reference,difference'];
+    for (const r of VLog.all()) {
+      lines.push([new Date(r.ts).toISOString(), r.kind, q(r.setup), r.page ?? '', r.motion ?? '', r.sonar ?? '', r.ref, r.page != null ? round1(r.page - r.ref) : ''].join(','));
+    }
+    return lines.join('\n');
+  }
+  $('#logCopy').addEventListener('click', () => {
+    const text = logCSV(), n = VLog.all().length;
+    const fallback = () => {
+      const ta = $('#logFallback'); ta.value = text; ta.hidden = false; ta.focus(); ta.select();
+      $('#logMsg').textContent = 'Copying was blocked. The log is selected below, so copy it from there.';
+    };
+    try { navigator.clipboard.writeText(text).then(() => { $('#logMsg').textContent = 'Copied ' + n + (n === 1 ? ' row.' : ' rows.'); }).catch(fallback); }
+    catch (e) { fallback(); }
+  });
+  let clearArmed = 0;
+  $('#logClear').addEventListener('click', () => {
+    const btn = $('#logClear');
+    if (!clearArmed) {
+      btn.textContent = 'Tap again to delete all ' + VLog.all().length;
+      clearArmed = setTimeout(() => { clearArmed = 0; btn.textContent = 'Clear log'; }, 4000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = 0;
+    btn.textContent = 'Clear log';
+    VLog.clear();
+    $('#logFallback').hidden = true;
+    $('#logMsg').textContent = 'Log cleared.';
+  });
+
+  // ================= Tabs =================
+  const tabs = [
+    { btn: $('#tabPulse'), panel: $('#panelPulse'), hash: 'pulse' },
+    { btn: $('#tabBreath'), panel: $('#panelBreath'), hash: 'breathing' }
+  ];
+  function selectTab(i, focus) {
+    tabs.forEach((t, k) => {
+      const on = k === i;
+      t.btn.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.btn.tabIndex = on ? 0 : -1;
+      t.panel.hidden = !on;
+    });
+    if (focus) tabs[i].btn.focus();
+    try { history.replaceState(null, '', '#' + tabs[i].hash); } catch (e) {}
+    requestAnimationFrame(() => { if (i === 0) window.FPLUI.redrawPulse(); else drawB(); });
+  }
+  tabs.forEach((t, i) => {
+    t.btn.addEventListener('click', () => selectTab(i));
+    t.btn.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        selectTab((i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length, true);
+      }
+    });
+  });
+
+  // ---------- Boot ----------
+  bs.data = B.makeExample();
+  bs.result = B.analyze(bs.data);
+  renderB();
+  renderLog();
+  syncPlace();
+  selectTab(location.hash === '#breathing' ? 1 : 0);
+
+  let raf = 0;
+  const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawB); };
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(redraw);
+    ro.observe($('#brMotionPlot')); ro.observe($('#brSonarPlot'));
   } else {
     window.addEventListener('resize', redraw);
   }
