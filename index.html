@@ -1,0 +1,1416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F4F3">
+<title>Fingertip Pulse Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one-column instrument sheet. Live controls, full-screen live view while measuring, then readout + pulse strip + spectrum + method notes. */
+:root {
+  --bg: #F7F4F3;
+  --surface: #FFFFFF;
+  --paper: #FFF9F8;
+  --ink: #1F1A1E;
+  --ink-2: #574E54;
+  --ink-3: #7E747A;
+  --rule: #E6DDDC;
+  --grid-minor: #F6E0DD;
+  --grid-major: #EAB9B3;
+  --trace: #1F2F44;
+  --trace-wash: rgba(31, 47, 68, 0.10);
+  --accent: #B3163C;
+  --shade: rgba(126, 116, 122, 0.13);
+  --good: #1E7A4C; --good-bg: #E4F2EA;
+  --warn: #8F5A05; --warn-bg: #F7EEDC;
+  --bad: #AF420E;  --bad-bg: #F9E6DC;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131114; --surface: #1B181C; --paper: #1A1517;
+    --ink: #F0EBEE; --ink-2: #BCB2B8; --ink-3: #91878D; --rule: #2F2A2F;
+    --grid-minor: #2A1E22; --grid-major: #4C2D34;
+    --trace: #D9E4F2; --trace-wash: rgba(217, 228, 242, 0.10);
+    --accent: #FF5D80; --shade: rgba(188, 178, 184, 0.10);
+    --good: #52C58C; --good-bg: #173226;
+    --warn: #E3A63F; --warn-bg: #33270F;
+    --bad: #FF8656;  --bad-bg: #3A1E12;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131114; --surface: #1B181C; --paper: #1A1517;
+  --ink: #F0EBEE; --ink-2: #BCB2B8; --ink-3: #91878D; --rule: #2F2A2F;
+  --grid-minor: #2A1E22; --grid-major: #4C2D34;
+  --trace: #D9E4F2; --trace-wash: rgba(217, 228, 242, 0.10);
+  --accent: #FF5D80; --shade: rgba(188, 178, 184, 0.10);
+  --good: #52C58C; --good-bg: #173226;
+  --warn: #E3A63F; --warn-bg: #33270F;
+  --bad: #FF8656;  --bad-bg: #3A1E12;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.sheet {
+  max-width: 880px;
+  margin: 0 auto;
+  padding-inline: 18px;
+  padding-block: calc(28px + env(safe-area-inset-top, 0px)) calc(64px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: 36px;
+}
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-weight: 600; font-size: clamp(2.3rem, 7vw, 3.4rem); line-height: 1; letter-spacing: -0.005em; }
+h2 { font-weight: 600; font-size: 1.45rem; line-height: 1.15; }
+p { margin: 0; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--ink-3);
+}
+.masthead { display: grid; gap: 10px; }
+.lede { color: var(--ink-2); max-width: 62ch; font-size: 1.06rem; }
+
+/* Buttons and controls */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  justify-self: start;
+  background: var(--ink); color: var(--bg);
+  font: inherit; font-weight: 600; font-size: 17px;
+  padding: 13px 22px; border-radius: 8px; border: 0; cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.btn svg { width: 18px; height: 18px; }
+.btn:hover { background: var(--accent); color: #fff; }
+.btn:focus-visible, .btn-quiet:focus-visible, .textbtn:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.btn-quiet {
+  font: inherit; font-size: 15px; font-weight: 600; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 9px 14px; cursor: pointer;
+}
+.btn-quiet:hover { border-color: var(--ink-3); }
+.textbtn {
+  font: inherit; font-size: 14px; color: var(--accent); background: none; border: 0; padding: 0;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label {
+  display: grid; gap: 2px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--surface); border-radius: 10px;
+  padding: 10px 14px; min-width: 0; flex: 1 1 180px;
+}
+.seg label b { font-weight: 600; font-size: 15.5px; color: var(--ink); }
+.seg label span { font-size: 13.5px; color: var(--ink-3); }
+.seg input:checked + label { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--ink-3); }
+select {
+  font: inherit; font-size: 15px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 8px; padding: 9px 10px; max-width: 100%;
+}
+.notice {
+  font-size: 14.5px; color: var(--ink); background: var(--warn-bg);
+  border-radius: 8px; padding: 10px 12px;
+}
+.error {
+  font-size: 14.5px; color: var(--bad); background: var(--bad-bg);
+  border-radius: 8px; padding: 10px 12px;
+}
+
+/* Capture */
+.capture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+}
+.capture-main { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.howto-wrap { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.howto-title { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.howto { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
+.howto li { counter-increment: step; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; font-size: 15px; color: var(--ink-2); }
+.howto li::before {
+  content: counter(step);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--ink);
+  width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--rule);
+  display: grid; place-items: center; margin-top: 1px;
+}
+.howto strong { color: var(--ink); font-weight: 600; }
+
+/* Readout */
+.readout {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 22px;
+  display: grid;
+  gap: 20px;
+  scroll-margin-top: 16px;
+}
+.readout-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); gap: 24px; align-items: start; }
+.hero { display: grid; gap: 4px; min-width: 0; }
+.label { font-size: 13px; color: var(--ink-3); letter-spacing: 0.02em; }
+.hero-val { display: flex; align-items: baseline; gap: 8px; }
+.hero-num { font-family: var(--font-body); font-weight: 600; font-size: 84px; line-height: 0.92; letter-spacing: -0.02em; }
+.hero-unit { font-family: var(--font-mono); font-size: 15px; color: var(--ink-3); }
+.hero-sub { font-size: 14px; color: var(--ink-2); }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin: 0; }
+.stats div { display: grid; gap: 2px; min-width: 0; border-top: 1px solid var(--rule); padding-top: 10px; }
+.stats dt { font-size: 13px; color: var(--ink-3); }
+.stats dd { margin: 0; font-size: 1.06rem; font-weight: 500; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 10px 2px 8px; border-radius: 999px;
+  font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.pill svg { width: 12px; height: 12px; flex: none; }
+.pill[data-q="good"] { color: var(--good); background: var(--good-bg); }
+.pill[data-q="fair"] { color: var(--warn); background: var(--warn-bg); }
+.pill[data-q="poor"] { color: var(--bad); background: var(--bad-bg); }
+.pill[data-q="none"] { color: var(--ink-3); background: var(--shade); }
+.source { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 14px; color: var(--ink-2); }
+.chip {
+  font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.07em;
+  padding: 3px 8px; border-radius: 4px; border: 1px solid var(--rule); color: var(--ink-2);
+}
+.chip[data-kind="example"] { border-style: dashed; }
+.warnings { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.warnings li {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 14.5px; color: var(--ink); background: var(--warn-bg);
+  border-radius: 8px; padding: 9px 12px;
+}
+.warnings li svg { width: 14px; height: 14px; flex: none; margin-top: 4px; color: var(--warn); }
+
+/* Charts */
+.chart-block { display: grid; gap: 12px; border-top: 1px solid var(--rule); padding-top: 24px; min-width: 0; }
+.chart-head { display: grid; gap: 4px; }
+.chart-head p { color: var(--ink-2); font-size: 15px; max-width: 70ch; }
+.plot { position: relative; }
+.plot canvas { display: block; }
+.plot .overlay { position: absolute; left: 0; top: 0; pointer-events: none; }
+.plot .hit { position: absolute; inset: 0; }
+.plot-fit .hit { touch-action: pan-y; }
+.strip-scroll {
+  overflow-x: auto; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper);
+  -webkit-overflow-scrolling: touch;
+}
+.strip-scroll .plot { width: max-content; }
+.strip-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+.tip {
+  position: absolute; z-index: 2; pointer-events: none;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 6px;
+  padding: 6px 9px; font-family: var(--font-mono); font-size: 12px; line-height: 1.45;
+  white-space: nowrap; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  font-variant-numeric: tabular-nums;
+}
+.tip b { font-weight: 500; }
+.tip .muted { color: var(--ink-3); }
+
+/* Method */
+.method { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; border-top: 1px solid var(--rule); padding-top: 28px; }
+.method section { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.method ol, .method ul { margin: 0; padding-left: 1.2em; display: grid; gap: 10px; color: var(--ink-2); font-size: 15px; }
+.method li strong { color: var(--ink); font-weight: 600; }
+.method li::marker { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
+.copyrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 4px; }
+.copy-msg { font-size: 14px; color: var(--ink-3); }
+#csvFallback {
+  width: 100%; height: 120px; font-family: var(--font-mono); font-size: 12px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 8px;
+}
+
+/* Live view (full screen while measuring) */
+.live {
+  position: fixed; inset: 0; z-index: 20;
+  background: var(--bg); color: var(--ink);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+/* Front-camera mode turns the screen into the light source: always white, whatever the theme. */
+.live[data-mode="front"] {
+  --bg: #FFFFFF; --surface: #FFFFFF; --paper: #FFFFFF;
+  --ink: #1F1A1E; --ink-2: #574E54; --ink-3: #7E747A; --rule: #E6DDDC;
+  --grid-minor: #F6E0DD; --grid-major: #EAB9B3;
+  --trace: #1F2F44; --accent: #B3163C; --shade: rgba(126, 116, 122, 0.13);
+  --good: #1E7A4C; --good-bg: #E4F2EA; --warn: #8F5A05; --warn-bg: #F7EEDC; --bad: #AF420E; --bad-bg: #F9E6DC;
+  color-scheme: light;
+}
+.lightzone {
+  flex: none; height: 30vh; min-height: 150px;
+  background: #FFFFFF;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0 16px 10px;
+  font-size: 13.5px; color: #7E747A; text-align: center;
+}
+.live:not([data-mode="front"]) .lightzone { display: none; }
+.live-inner {
+  width: 100%; max-width: 560px; margin: 0 auto;
+  padding-inline: 18px;
+  padding-block: calc(18px + env(safe-area-inset-top, 0px)) calc(24px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 16px; align-content: start;
+}
+.live[data-mode="front"] .live-inner { padding-top: 14px; }
+.live-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.live-timer { font-family: var(--font-mono); font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.live-status { font-size: 1.15rem; font-weight: 500; min-height: 1.6em; }
+.live-hero { display: flex; align-items: center; gap: 14px; }
+.live-hero .hero-num { font-size: 96px; font-variant-numeric: tabular-nums; }
+.beat {
+  width: 22px; height: 22px; border-radius: 50%; flex: none;
+  background: var(--rule); transition: background-color 250ms ease, transform 250ms ease;
+}
+.beat.on { background: var(--accent); transform: scale(1.25); transition: none; }
+.live-wave { border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; background: var(--paper); }
+.live-wave canvas { display: block; }
+.track { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.bar { height: 100%; width: 0; background: var(--accent); border-radius: 3px; }
+.live-row { display: flex; align-items: center; gap: 14px; }
+#cam { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: #000; flex: none; }
+.live-facts { display: grid; gap: 6px; min-width: 0; }
+.live-note { font-size: 13.5px; color: var(--ink-2); }
+.live-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+@media (max-width: 680px) {
+  .readout-top, .capture, .method { grid-template-columns: minmax(0, 1fr); }
+  .hero-num { font-size: 72px; }
+  .live-hero .hero-num { font-size: 88px; }
+  .readout { padding: 18px; }
+}
+@media (max-width: 380px) {
+  .stats { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, .beat { transition: none; }
+  .beat.on { transform: none; }
+}
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header class="masthead">
+    <p class="eyebrow">Photoplethysmography · version 2 · live camera</p>
+    <h1>Fingertip Pulse Lab</h1>
+    <p class="lede">Rest a fingertip on your phone's camera and watch your pulse appear. Each heartbeat pushes a little more blood into the fingertip, which changes how much light reaches the camera.</p>
+  </header>
+
+  <section class="capture" id="capture">
+    <div class="capture-main">
+      <h2>Measure live</h2>
+      <p class="notice" id="insecureNotice" hidden>The camera only works when this page is opened from a secure <strong>https://</strong> address, such as your GitHub Pages link. It will not work as a downloaded file.</p>
+      <div class="seg" role="radiogroup" aria-label="Camera to use">
+        <input type="radio" name="mode" id="modeBack" value="back" checked>
+        <label for="modeBack"><b>Back camera + flash</b><span>Usually the strongest signal</span></label>
+        <input type="radio" name="mode" id="modeFront" value="front">
+        <label for="modeFront"><b>Front camera + screen light</b><span>Easier if the camera bump gets in the way</span></label>
+      </div>
+      <label class="field" for="camSelect" id="camField" hidden>Back camera
+        <select id="camSelect"><option value="">Automatic (finds the camera with the flash)</option></select>
+      </label>
+      <button type="button" class="btn" id="startBtn">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.3 6.9v6.2l5-3.1z" fill="currentColor"/></svg>
+        Start measuring
+      </button>
+      <p class="error" id="errorMsg" role="alert" hidden></p>
+    </div>
+    <div class="howto-wrap">
+      <p class="howto-title" id="howtoTitle">Back camera</p>
+      <ol class="howto" id="howtoBack">
+        <li><span>Find the <strong>main camera</strong>: the larger lens, usually the one closest to the flash.</span></li>
+        <li><span>Cover that lens completely with the <strong>pad of your fingertip</strong>, pressing lightly. The flash does not need to be covered. Its light spreads through your finger and still reaches the lens.</span></li>
+        <li><span>If the signal stays weak, <strong>roll your finger slightly toward the flash</strong> or press more lightly.</span></li>
+        <li><span>Rest your hand on a table and keep still for <strong>30 seconds</strong>.</span></li>
+      </ol>
+      <ol class="howto" id="howtoFront" hidden>
+        <li><span>Turn your <strong>screen brightness all the way up</strong>.</span></li>
+        <li><span>Tap Start. The top of the screen turns <strong>white</strong> to light your fingertip.</span></li>
+        <li><span>Rest your fingertip <strong>lightly over the front camera</strong> at the top of the screen, covering it completely.</span></li>
+        <li><span>Keep still for <strong>30 seconds</strong> and watch the reading below your finger.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="readout" aria-live="polite" id="readout">
+    <div class="readout-top">
+      <div class="hero">
+        <span class="label">Heart rate</span>
+        <span class="hero-val"><span class="hero-num" id="bpm">--</span><span class="hero-unit">BPM</span></span>
+        <span class="hero-sub" id="bpmSub">Strongest rhythm in the frequency spectrum</span>
+      </div>
+      <dl class="stats">
+        <div><dt>Signal quality</dt><dd><span class="pill" id="qualityPill" data-q="good"></span></dd></div>
+        <div><dt>Beat-to-beat estimate</dt><dd id="bpmBeats">--</dd></div>
+        <div><dt>Beats detected</dt><dd id="beats">--</dd></div>
+        <div><dt>HRV (RMSSD, experimental)</dt><dd id="rmssd">--</dd></div>
+        <div><dt>Analyzed</dt><dd id="analyzed">--</dd></div>
+        <div><dt>Recording</dt><dd id="recording">--</dd></div>
+      </dl>
+    </div>
+    <p class="source">
+      <span class="chip" id="sourceChip" data-kind="example">Example result</span>
+      <span id="sourceText">A synthetic 72 BPM trace, shown until you take your first measurement.</span>
+      <button type="button" class="textbtn" id="exampleBtn" hidden>Show the example again</button>
+    </p>
+    <ul class="warnings" id="warnings"></ul>
+  </section>
+
+  <section class="chart-block">
+    <div class="chart-head">
+      <h2>Raw brightness</h2>
+      <p>Average <span id="rawChannel">red</span> value of every frame, on the camera's 0 to 255 scale. The shaded start is discarded while the camera's auto-exposure settles.</p>
+    </div>
+    <div class="plot plot-fit" id="rawPlot">
+      <canvas class="base" aria-label="Raw brightness over time"></canvas>
+      <canvas class="overlay" aria-hidden="true"></canvas>
+      <div class="hit"></div>
+      <div class="tip" hidden></div>
+    </div>
+  </section>
+
+  <section class="chart-block">
+    <div class="chart-head">
+      <h2>Pulse wave</h2>
+      <p>The same signal after a 0.7 to 3.5 Hz band-pass filter, flipped so that more blood points up. Dots mark detected heartbeats. Height is in relative units.</p>
+    </div>
+    <div class="strip-scroll" id="stripScroll">
+      <div class="plot" id="stripPlot">
+        <canvas class="base" aria-label="Filtered pulse wave with detected beats"></canvas>
+        <canvas class="overlay" aria-hidden="true"></canvas>
+        <div class="hit"></div>
+        <div class="tip" hidden></div>
+      </div>
+    </div>
+    <div class="strip-meta">
+      <span>ECG paper scale: small box 0.04 s, large box 0.2 s</span>
+      <span>Scroll sideways for the full recording</span>
+    </div>
+  </section>
+
+  <section class="chart-block">
+    <div class="chart-head">
+      <h2>Frequency spectrum</h2>
+      <p>How strongly each rhythm between 42 and 210 BPM is present in the pulse wave. The axis is in BPM and the tallest peak is the heart rate. A smaller bump at double that rate is the pulse's harmonic.</p>
+    </div>
+    <div class="plot plot-fit" id="specPlot">
+      <canvas class="base" aria-label="Frequency spectrum in beats per minute"></canvas>
+      <canvas class="overlay" aria-hidden="true"></canvas>
+      <div class="hit"></div>
+      <div class="tip" hidden></div>
+    </div>
+  </section>
+
+  <div class="method">
+    <section>
+      <h2>How the page reads your pulse</h2>
+      <ol>
+        <li><strong>Average each frame.</strong> Every camera frame is shrunk to 40 × 40 pixels and its red, green and blue values are averaged. With light shining through your fingertip, red dominates.</li>
+        <li><strong>Check for a finger.</strong> Frames only count while they are strongly red. Lifting your finger restarts the 30 seconds.</li>
+        <li><strong>Drop the warm-up.</strong> The first 2 seconds after your finger lands are discarded while the camera adjusts its exposure.</li>
+        <li><strong>Even out the timing.</strong> Frames arrive at slightly uneven intervals, so the signal is resampled to exactly 30 samples per second.</li>
+        <li><strong>Keep heart-rate frequencies only.</strong> A band-pass filter keeps 0.7 to 3.5 Hz (42 to 210 BPM). It removes slow drift from breathing and hand movement and fast sensor noise.</li>
+        <li><strong>Find the rhythm two ways.</strong> The frequency spectrum gives the dominant rate. Separately, each beat's peak is located, and the gaps between beats give a second rate and the HRV figure.</li>
+        <li><strong>Grade the signal.</strong> Quality compares the power at the heart rate and its harmonic with everything else in the band, and checks that the two rates agree within 8%.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Limits of this version</h2>
+      <ul>
+        <li>This is a learning tool, not a medical device.</li>
+        <li>The camera's automatic exposure keeps adjusting, which adds slow drift. The filter removes most of it.</li>
+        <li>Treat HRV as experimental. A 30 fps camera is coarse for beat-to-beat timing.</li>
+        <li>Movement and pressing too hard cause most bad readings.</li>
+        <li>Switching apps or locking the screen stops the measurement.</li>
+      </ul>
+      <div class="copyrow">
+        <button type="button" class="btn-quiet" id="copyBtn">Copy raw data as CSV</button>
+        <span class="copy-msg" id="copyMsg">Paste into a spreadsheet or Python to try your own filters.</span>
+      </div>
+      <textarea id="csvFallback" readonly hidden aria-label="Raw data as CSV"></textarea>
+    </section>
+  </div>
+</main>
+
+<div class="live" id="live" data-mode="back" hidden>
+  <div class="lightzone" id="lightzone">Rest your fingertip lightly on the front camera, just above this text</div>
+  <div class="live-inner">
+    <div class="live-top">
+      <span class="chip" id="liveMode">Back camera + flash</span>
+      <span class="live-timer" id="liveTimer">0 / 30 s</span>
+    </div>
+    <p class="live-status" id="liveStatus" aria-live="polite">Starting the camera…</p>
+    <div class="live-hero">
+      <span class="beat" id="beatDot" aria-hidden="true"></span>
+      <span class="hero-val"><span class="hero-num" id="liveBpm">--</span><span class="hero-unit">BPM</span></span>
+    </div>
+    <div class="live-wave"><canvas id="liveCanvas" aria-label="Live pulse wave"></canvas></div>
+    <div class="track" aria-hidden="true"><div class="bar" id="liveBar"></div></div>
+    <div class="live-row">
+      <video id="cam" muted playsinline autoplay></video>
+      <div class="live-facts">
+        <span><span class="pill" id="livePill" data-q="none"></span></span>
+        <span class="live-note" id="liveNote"></span>
+      </div>
+    </div>
+    <div class="live-actions">
+      <button type="button" class="btn" id="stopBtn">Stop</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// DSP-START
+const DSP = (() => {
+  const FS = 30, LO = 0.7, HI = 3.5;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // Synthetic fingertip recording: 72 BPM average with breathing-linked variation,
+  // a systolic and diastolic bump per beat, slow drift, auto-exposure settling and sensor noise.
+  function makeExample() {
+    const fs = 30, dur = 30, rng = mulberry32(7);
+    const t = [], r = [], g = [], b = [], clip = [];
+    let phase = 0;
+    for (let i = 0; i < fs * dur; i++) {
+      const ti = i / fs;
+      const hr = 72 + 3 * Math.sin(2 * Math.PI * 0.25 * ti);
+      phase += hr / 60 / fs;
+      const p = phase % 1;
+      const wave = Math.exp(-(((p - 0.18) / 0.07) ** 2)) + 0.35 * Math.exp(-(((p - 0.5) / 0.1) ** 2));
+      const resp = 0.5 * Math.sin(2 * Math.PI * 0.25 * ti);
+      const drift = 3 * Math.sin(2 * Math.PI * 0.03 * ti + 1);
+      const settle = ti < 1.6 ? 24 * (1 - ti / 1.6) ** 2 : 0;
+      t.push(ti);
+      r.push(198 - 3.4 * wave + resp + drift + settle + (rng() - 0.5) * 1.0);
+      g.push(31 - 0.5 * wave + 0.3 * drift + settle * 0.2 + (rng() - 0.5) * 1.2);
+      b.push(17 + (rng() - 0.5) * 0.8);
+      clip.push(0.03);
+    }
+    return { t, r, g, b, clip };
+  }
+
+  function resample(t, v, fs) {
+    const t0 = t[0], t1 = t[t.length - 1];
+    const n = Math.floor((t1 - t0) * fs) + 1;
+    const out = new Float64Array(n);
+    let j = 0;
+    for (let i = 0; i < n; i++) {
+      const ti = t0 + i / fs;
+      while (j < t.length - 2 && t[j + 1] < ti) j++;
+      const a = t[j], b = t[j + 1];
+      const w = b > a ? Math.min(1, Math.max(0, (ti - a) / (b - a))) : 0;
+      out[i] = v[j] + (v[j + 1] - v[j]) * w;
+    }
+    return out;
+  }
+
+  function biquad(type, f0, fs, Q) {
+    const w0 = 2 * Math.PI * f0 / fs, c = Math.cos(w0), s = Math.sin(w0), al = s / (2 * Q);
+    let b0, b1, b2;
+    if (type === 'lp') { b0 = (1 - c) / 2; b1 = 1 - c; b2 = (1 - c) / 2; }
+    else { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = (1 + c) / 2; }
+    const a0 = 1 + al;
+    return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: (-2 * c) / a0, a2: (1 - al) / a0 };
+  }
+
+  function runBiquad(q, x) {
+    const y = new Float64Array(x.length);
+    const dc = (q.b0 + q.b1 + q.b2) / (1 + q.a1 + q.a2);
+    let x1 = x[0], x2 = x[0], y1 = x[0] * dc, y2 = x[0] * dc;
+    for (let i = 0; i < x.length; i++) {
+      const v = q.b0 * x[i] + q.b1 * x1 + q.b2 * x2 - q.a1 * y1 - q.a2 * y2;
+      x2 = x1; x1 = x[i]; y2 = y1; y1 = v; y[i] = v;
+    }
+    return y;
+  }
+
+  // 4th-order Butterworth high-pass + low-pass, run forward and backward (zero phase).
+  const BW4 = [0.5411961, 1.3065630];
+  const SECS = {};
+  function sections(fs, lo, hi) {
+    const key = fs + ':' + lo + ':' + hi;
+    if (!SECS[key]) SECS[key] = [...BW4.map(Q => biquad('hp', lo, fs, Q)), ...BW4.map(Q => biquad('lp', hi, fs, Q))];
+    return SECS[key];
+  }
+  function bandpass(x, fs, lo, hi) {
+    const n = x.length, pad = Math.min(n - 1, Math.round(2 * fs));
+    const ext = new Float64Array(n + 2 * pad);
+    for (let i = 0; i < pad; i++) ext[i] = 2 * x[0] - x[pad - i];
+    for (let i = 0; i < n; i++) ext[pad + i] = x[i];
+    for (let i = 0; i < pad; i++) ext[pad + n + i] = 2 * x[n - 1] - x[n - 2 - i];
+    const secs = sections(fs, lo, hi);
+    let y = ext;
+    for (const q of secs) y = runBiquad(q, y);
+    y.reverse();
+    for (const q of secs) y = runBiquad(q, y);
+    y.reverse();
+    return y.slice(pad, pad + n);
+  }
+
+  function spectrum(y, fs, fmin, fmax, df) {
+    const n = y.length;
+    let mean = 0; for (let i = 0; i < n; i++) mean += y[i]; mean /= n;
+    const w = new Float64Array(n);
+    for (let i = 0; i < n; i++) w[i] = (y[i] - mean) * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1)));
+    const f = [], p = [];
+    for (let fr = fmin; fr <= fmax + 1e-9; fr += df) {
+      const om = 2 * Math.PI * fr / fs, cw = Math.cos(om), sw = Math.sin(om);
+      let re = 0, im = 0, c = 1, s = 0;
+      for (let i = 0; i < n; i++) {
+        re += w[i] * c; im -= w[i] * s;
+        const c2 = c * cw - s * sw; s = s * cw + c * sw; c = c2;
+      }
+      f.push(fr); p.push(re * re + im * im);
+    }
+    let k = 0;
+    for (let i = 1; i < p.length; i++) if (p[i] > p[k]) k = i;
+    // If the tallest peak is really the harmonic, step down to the fundamental.
+    const half = f[k] / 2;
+    if (half >= fmin) {
+      const kh = Math.round((half - fmin) / df);
+      let best = kh;
+      for (let i = Math.max(0, kh - 3); i <= Math.min(p.length - 1, kh + 3); i++) if (p[i] > p[best]) best = i;
+      if (p[best] > 0.6 * p[k]) k = best;
+    }
+    let peak = f[k];
+    if (k > 0 && k < p.length - 1) {
+      const a = p[k - 1], b = p[k], c = p[k + 1];
+      const d = (a - c) / (2 * (a - 2 * b + c));
+      if (isFinite(d) && Math.abs(d) < 1) peak = f[k] + d * df;
+    }
+    let sig = 0, tot = 0;
+    for (let i = 0; i < f.length; i++) {
+      tot += p[i];
+      if (Math.abs(f[i] - peak) <= 0.1 || Math.abs(f[i] - 2 * peak) <= 0.15) sig += p[i];
+    }
+    const snrDb = 10 * Math.log10(Math.max(sig, 1e-12) / Math.max(1e-12, tot - sig));
+    return { f, p, peakHz: peak, peakIdx: k, snrDb };
+  }
+
+  function detectBeats(y, fs, hrHz) {
+    const n = y.length, minDist = Math.max(1, Math.floor(0.6 * fs / hrHz));
+    const cand = [];
+    for (let i = 1; i < n - 1; i++) if (y[i] > y[i - 1] && y[i] >= y[i + 1] && y[i] > 0) cand.push(i);
+    cand.sort((a, b) => y[b] - y[a]);
+    const taken = new Uint8Array(n), keep = [];
+    for (const i of cand) {
+      let ok = true;
+      for (let j = Math.max(0, i - minDist); j <= Math.min(n - 1, i + minDist); j++) if (taken[j]) { ok = false; break; }
+      if (ok) { taken[i] = 1; keep.push(i); }
+    }
+    keep.sort((a, b) => a - b);
+    const hs = keep.map(i => y[i]).sort((a, b) => a - b);
+    const med = hs.length ? hs[hs.length >> 1] : 0;
+    const idx = keep.filter(i => y[i] >= 0.3 * med);
+    const times = idx.map(i => {
+      const a = y[i - 1], b = y[i], c = y[i + 1];
+      const d = (a - c) / (2 * (a - 2 * b + c));
+      return (i + (isFinite(d) && Math.abs(d) < 1 ? d : 0)) / fs;
+    });
+    return { idx, times };
+  }
+
+  function beatStats(times) {
+    const ibi = [];
+    for (let i = 1; i < times.length; i++) ibi.push(times[i] - times[i - 1]);
+    if (ibi.length < 3) return null;
+    const s = [...ibi].sort((a, b) => a - b), med = s[s.length >> 1];
+    const valid = ibi.map(v => v >= 0.7 * med && v <= 1.3 * med);
+    const good = ibi.filter((v, i) => valid[i]);
+    if (!good.length) return null;
+    const mean = good.reduce((a, b) => a + b, 0) / good.length;
+    let sq = 0, cnt = 0;
+    for (let i = 1; i < ibi.length; i++) {
+      if (valid[i] && valid[i - 1]) { const d = ibi[i] - ibi[i - 1]; sq += d * d; cnt++; }
+    }
+    return { ibi, valid, bpm: 60 / mean, rmssd: cnt >= 5 ? Math.sqrt(sq / cnt) * 1000 : null, validCount: good.length };
+  }
+
+  function median(a) {
+    if (!a.length) return 0;
+    const s = [...a].sort((x, y) => x - y);
+    return s[s.length >> 1];
+  }
+
+  function analyzeChannel(t, v, start, df) {
+    const tt = [], vv = [];
+    for (let i = 0; i < t.length; i++) if (t[i] >= start) { tt.push(t[i]); vv.push(-v[i]); }
+    const x = resample(tt, vv, FS);
+    const y = bandpass(x, FS, LO, HI);
+    const spec = spectrum(y, FS, LO, HI, df || 1 / 120);
+    return { y, spec, t0: tt[0] };
+  }
+
+  // Quick estimate for the live view: picks the better of red and green.
+  function quick(t, r, g) {
+    const a = analyzeChannel(t, r, -Infinity, 1 / 60);
+    const b = analyzeChannel(t, g, -Infinity, 1 / 60);
+    const ch = b.spec.snrDb > a.spec.snrDb + 1 ? b : a;
+    return { bpm: ch.spec.peakHz * 60, snrDb: ch.spec.snrDb, peakHz: ch.spec.peakHz };
+  }
+
+  function analyze(s) {
+    const n = s.t.length;
+    if (n < 60) return { error: 'Too few frames were collected. Keep your finger on the camera for the full 30 seconds.' };
+    const t0 = s.t[0];
+    const t = s.t.map(v => v - t0);
+    const dur = t[n - 1];
+    const settle = Math.min(2, dur * 0.15);
+    if (dur - settle < 6) {
+      return { error: 'Only ' + Math.max(0, dur - settle).toFixed(1) + ' seconds could be analyzed. Keep your finger still on the camera for longer.' };
+    }
+    const fpsIn = (n - 1) / dur;
+    const red = analyzeChannel(t, s.r, settle);
+    const green = analyzeChannel(t, s.g, settle);
+    const useGreen = green.spec.snrDb > red.spec.snrDb + 1;
+    const ch = useGreen ? green : red;
+    const channel = useGreen ? 'green' : 'red';
+    const bpmSpec = ch.spec.peakHz * 60;
+    const beats = detectBeats(ch.y, FS, ch.spec.peakHz);
+    const stats = beatStats(beats.times);
+    const agree = stats ? Math.abs(stats.bpm - bpmSpec) / bpmSpec < 0.08 : false;
+    const snr = ch.spec.snrDb;
+    let quality = (snr >= 3 && agree) ? 'good' : ((snr >= 1 && agree) || snr >= 3) ? 'fair' : 'poor';
+
+    const after = (arr) => arr.filter((_, i) => t[i] >= settle);
+    const medR = median(after(s.r)), medG = median(after(s.g)), medClip = median(after(s.clip));
+    const warnings = [];
+    if (medR < 60) {
+      warnings.push('The frames were dark. Turn the flash or screen light on and make sure your fingertip is close to it.');
+      quality = 'poor';
+    } else if (medG > 0.7 * medR) {
+      warnings.push('The frames were not red enough for a covered fingertip. Cover the lens completely.');
+      if (quality === 'good') quality = 'fair';
+    }
+    if (medClip > 0.4) warnings.push('Most of the image was at full brightness, which hides the pulse. Rest your finger more lightly, or shift it slightly away from the light.');
+    const analyzed = (ch.y.length - 1) / FS;
+    if (fpsIn < 15) warnings.push('Only ' + Math.round(fpsIn) + ' frames per second arrived, so timing is less precise. Close other apps and try again.');
+    if (quality !== 'good' && !agree && stats) warnings.push('The two rate estimates disagree. Keep your hand still on a table and measure again.');
+    else if (quality === 'poor') warnings.push('The rhythm was weak or noisy. Keep your hand still on a table and measure again.');
+
+    return {
+      channel, raw: { t, v: useGreen ? s.g : s.r }, settle, dur, fs: FS,
+      y: ch.y, yT0: ch.t0, spec: ch.spec, beats, stats, bpmSpec, quality, agree,
+      fpsIn, analyzed, warnings
+    };
+  }
+
+  return { makeExample, analyze, quick, resample, bandpass, spectrum, detectBeats, beatStats, FS, LO, HI };
+})();
+// DSP-END
+
+(() => {
+  const $ = (sel) => document.querySelector(sel);
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const state = { samples: null, result: null, source: 'example', label: '' };
+  const plotState = {};
+
+  const ICONS = {
+    good: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.4 6.4l2.4 2.3 4.8-5.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    fair: '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 1.7a4.3 4.3 0 0 1 0 8.6z" fill="currentColor"/></svg>',
+    poor: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2.4v4.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="6" cy="9.4" r="1.05" fill="currentColor"/></svg>',
+    none: '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2"/></svg>',
+    warn: '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.6l6 10.6H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 5.6v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="10.4" r=".85" fill="currentColor"/></svg>'
+  };
+  const QUALITY_TEXT = { good: 'Good', fair: 'Fair', poor: 'Low confidence' };
+
+  function tokens(el) {
+    const cs = getComputedStyle(el || document.documentElement);
+    const g = (n) => cs.getPropertyValue(n).trim();
+    return {
+      ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), rule: g('--rule'),
+      gridMinor: g('--grid-minor'), gridMajor: g('--grid-major'), paper: g('--paper'),
+      trace: g('--trace'), wash: g('--trace-wash'), accent: g('--accent'),
+      surface: g('--surface'), shade: g('--shade'),
+      monoFamily: g('--font-mono'), mono: '11px ' + g('--font-mono')
+    };
+  }
+
+  function prep(canvas, w, h) {
+    const dpr = window.devicePixelRatio || 1;
+    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    if (canvas.width !== pw) canvas.width = pw;
+    if (canvas.height !== ph) canvas.height = ph;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return ctx;
+  }
+
+  function niceTicks(min, max, count) {
+    const span = (max - min) || 1;
+    const raw = span / count;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const e = raw / mag;
+    const step = (e >= 7.5 ? 10 : e >= 3.5 ? 5 : e >= 1.5 ? 2 : 1) * mag;
+    const out = [];
+    for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) out.push(+v.toFixed(10));
+    return out;
+  }
+
+  function nearestIndex(arr, x) {
+    let lo = 0, hi = arr.length - 1;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (arr[mid] < x) lo = mid; else hi = mid; }
+    return Math.abs(arr[lo] - x) <= Math.abs(arr[hi] - x) ? lo : hi;
+  }
+
+  function dot(ctx, x, y, color, ring) {
+    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fillStyle = ring; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+  }
+
+  function paperGrid(ctx, x0, y0, w, h, T, box) {
+    ctx.fillStyle = T.paper; ctx.fillRect(x0, y0, w, h);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = T.gridMinor; ctx.beginPath();
+    for (let x = 0; x <= w; x += box) if (x % (box * 5)) { ctx.moveTo(x0 + x + 0.5, y0); ctx.lineTo(x0 + x + 0.5, y0 + h); }
+    for (let y = 0; y <= h; y += box) if (y % (box * 5)) { ctx.moveTo(x0, y0 + y + 0.5); ctx.lineTo(x0 + w, y0 + y + 0.5); }
+    ctx.stroke();
+    ctx.strokeStyle = T.gridMajor; ctx.beginPath();
+    for (let x = 0; x <= w; x += box * 5) { ctx.moveTo(x0 + x + 0.5, y0); ctx.lineTo(x0 + x + 0.5, y0 + h); }
+    for (let y = 0; y <= h; y += box * 5) { ctx.moveTo(x0, y0 + y + 0.5); ctx.lineTo(x0 + w, y0 + y + 0.5); }
+    ctx.stroke();
+  }
+
+  // ---------- Results: raw brightness ----------
+  function drawRaw() {
+    const r = state.result, el = $('#rawPlot');
+    const W = Math.max(260, el.clientWidth), H = 180;
+    const m = { l: 42, r: 10, t: 12, b: 26 };
+    const ctx = prep(el.querySelector('.base'), W, H);
+    prep(el.querySelector('.overlay'), W, H);
+    const T = tokens();
+    const t = r.raw.t, v = r.raw.v, dur = t[t.length - 1];
+    let lo = Infinity, hi = -Infinity;
+    for (const x of v) { if (x < lo) lo = x; if (x > hi) hi = x; }
+    const pad = Math.max(0.5, (hi - lo) * 0.08); lo -= pad; hi += pad;
+    const pw = W - m.l - m.r, ph = H - m.t - m.b;
+    const xs = (s) => m.l + (s / dur) * pw;
+    const ys = (val) => m.t + (1 - (val - lo) / (hi - lo)) * ph;
+
+    ctx.fillStyle = T.shade;
+    ctx.fillRect(xs(0), m.t, xs(r.settle) - xs(0), ph);
+    if (xs(r.settle) - xs(0) > 58) {
+      ctx.fillStyle = T.ink3; ctx.font = T.mono; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillText('settling', xs(0) + 6, m.t + 5);
+    }
+    ctx.font = T.mono; ctx.lineWidth = 1;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (const val of niceTicks(lo, hi, 3)) {
+      const y = Math.round(ys(val)) + 0.5;
+      ctx.strokeStyle = T.rule; ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(W - m.r, y); ctx.stroke();
+      ctx.fillStyle = T.ink3; ctx.fillText(String(Math.round(val * 10) / 10), m.l - 8, y);
+    }
+    const step = dur > 40 ? 10 : 5;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (let s = 0; s <= dur + 1e-6; s += step) {
+      ctx.fillStyle = T.ink3; ctx.fillText(s + ' s', Math.min(Math.max(xs(s), m.l + 10), W - m.r - 12), H - m.b + 8);
+    }
+    ctx.strokeStyle = T.rule; ctx.beginPath(); ctx.moveTo(m.l, H - m.b + 0.5); ctx.lineTo(W - m.r, H - m.b + 0.5); ctx.stroke();
+    ctx.strokeStyle = T.trace; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < t.length; i++) { const x = xs(t[i]), y = ys(v[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+
+    plotState.raw = {
+      W, H, top: m.t, bottom: H - m.b,
+      hit(x) {
+        if (x < m.l - 4 || x > W - m.r + 4) return null;
+        const i = nearestIndex(t, ((x - m.l) / pw) * dur);
+        const note = t[i] < r.settle ? '<br><span class="muted">settling, not analyzed</span>' : '';
+        return { px: xs(t[i]), py: ys(v[i]), html: '<b>' + t[i].toFixed(2) + ' s</b><br>' + r.channel + ' ' + v[i].toFixed(1) + note };
+      }
+    };
+  }
+
+  // ---------- Results: pulse strip on ECG paper ----------
+  function drawStrip() {
+    const r = state.result, el = $('#stripPlot');
+    const PPS = 125, BOX = 5, PH = 175, MB = 26;
+    const dur = r.analyzed;
+    const W = Math.ceil(dur * PPS / BOX) * BOX, H = PH + MB;
+    const ctx = prep(el.querySelector('.base'), W, H);
+    prep(el.querySelector('.overlay'), W, H);
+    const T = tokens();
+    ctx.fillStyle = T.paper; ctx.fillRect(0, 0, W, H);
+    paperGrid(ctx, 0, 0, W, PH, T, BOX);
+
+    const y = r.y;
+    const absSorted = Array.from(y, Math.abs).sort((a, b) => a - b);
+    const amp = absSorted[Math.floor(absSorted.length * 0.98)] || 1;
+    const scale = (PH * 0.42) / amp, mid = PH / 2;
+    const xs = (s) => s * PPS;
+    const ys = (val) => Math.min(PH - 2, Math.max(2, mid - val * scale));
+
+    ctx.strokeStyle = T.trace; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < y.length; i++) { const px = xs(i / r.fs), py = ys(y[i]); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+    ctx.stroke();
+    r.beats.idx.forEach((idx, k) => dot(ctx, xs(r.beats.times[k]), ys(y[idx]), T.accent, T.paper));
+
+    ctx.font = T.mono; ctx.fillStyle = T.ink3; ctx.textBaseline = 'top';
+    for (let s = Math.ceil(r.yT0); s <= r.yT0 + dur + 1e-6; s++) {
+      const x = xs(s - r.yT0);
+      ctx.textAlign = x < 14 ? 'left' : (x > W - 14 ? 'right' : 'center');
+      ctx.fillText(s + ' s', x, PH + 8);
+    }
+
+    const times = r.beats.times;
+    plotState.strip = {
+      W, H, top: 0, bottom: PH,
+      hit(x) {
+        const i = Math.max(0, Math.min(y.length - 1, Math.round((x / PPS) * r.fs)));
+        const s = i / r.fs;
+        let html = '<b>' + (r.yT0 + s).toFixed(2) + ' s</b>';
+        let px = xs(s), py = ys(y[i]), color = null;
+        if (times.length) {
+          const k = nearestIndex(times, s);
+          if (Math.abs(times[k] - s) < 0.12) {
+            px = xs(times[k]); py = ys(y[r.beats.idx[k]]); color = 'accent';
+            html += '<br>Beat ' + (k + 1);
+            if (k > 0) html += '<br><span class="muted">' + Math.round((times[k] - times[k - 1]) * 1000) + ' ms after previous</span>';
+          }
+        }
+        return { px, py, html, color };
+      }
+    };
+  }
+
+  // ---------- Results: spectrum ----------
+  function drawSpec() {
+    const r = state.result, el = $('#specPlot');
+    const W = Math.max(260, el.clientWidth), H = 190;
+    const m = { l: 14, r: 14, t: 30, b: 26 };
+    const ctx = prep(el.querySelector('.base'), W, H);
+    prep(el.querySelector('.overlay'), W, H);
+    const T = tokens();
+    const f = r.spec.f, p = r.spec.p;
+    let pmax = 0; for (const v of p) if (v > pmax) pmax = v;
+    const B0 = 40, B1 = 212;
+    const pw = W - m.l - m.r, ph = H - m.t - m.b;
+    const xs = (bpm) => m.l + ((bpm - B0) / (B1 - B0)) * pw;
+    const ys = (val) => m.t + (1 - val / pmax) * ph;
+
+    ctx.lineWidth = 1; ctx.font = T.mono; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (let b = 60; b <= 210; b += 30) {
+      const x = Math.round(xs(b)) + 0.5;
+      ctx.strokeStyle = T.rule; ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, H - m.b); ctx.stroke();
+      ctx.fillStyle = T.ink3; ctx.fillText(String(b), x, H - m.b + 8);
+    }
+    ctx.strokeStyle = T.rule; ctx.beginPath(); ctx.moveTo(m.l, H - m.b + 0.5); ctx.lineTo(W - m.r, H - m.b + 0.5); ctx.stroke();
+
+    ctx.beginPath();
+    for (let i = 0; i < f.length; i++) { const x = xs(f[i] * 60), y = ys(p[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.lineTo(xs(f[f.length - 1] * 60), H - m.b); ctx.lineTo(xs(f[0] * 60), H - m.b); ctx.closePath();
+    ctx.fillStyle = T.wash; ctx.fill();
+    ctx.beginPath();
+    for (let i = 0; i < f.length; i++) { const x = xs(f[i] * 60), y = ys(p[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.strokeStyle = T.trace; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+    const k = r.spec.peakIdx, px = xs(r.bpmSpec), py = ys(p[k]);
+    dot(ctx, px, py, T.accent, T.surface);
+    const label = Math.round(r.bpmSpec) + ' BPM';
+    ctx.font = '500 12px ' + T.monoFamily;
+    const tw = ctx.measureText(label).width;
+    ctx.fillStyle = T.ink; ctx.textBaseline = 'bottom'; ctx.textAlign = 'left';
+    ctx.fillText(label, Math.min(Math.max(px - tw / 2, m.l), W - m.r - tw), py - 10);
+
+    plotState.spec = {
+      W, H, top: m.t, bottom: H - m.b,
+      hit(x) {
+        if (x < m.l - 4 || x > W - m.r + 4) return null;
+        const bpm = B0 + ((x - m.l) / pw) * (B1 - B0);
+        const i = Math.max(0, Math.min(f.length - 1, Math.round((bpm / 60 - f[0]) / (f[1] - f[0]))));
+        return { px: xs(f[i] * 60), py: ys(p[i]), html: '<b>' + (f[i] * 60).toFixed(1) + ' BPM</b><br><span class="muted">' + (p[i] / pmax).toFixed(2) + ' of peak power</span>' };
+      }
+    };
+  }
+
+  function drawAll() {
+    if (!state.result) return;
+    drawRaw(); drawStrip(); drawSpec();
+  }
+
+  function attachHover(plotId, key, scroller) {
+    const el = $(plotId), overlay = el.querySelector('.overlay'), tip = el.querySelector('.tip'), hitEl = el.querySelector('.hit');
+    const clear = () => {
+      const ctx = overlay.getContext('2d'); const dpr = window.devicePixelRatio || 1;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, overlay.width / dpr, overlay.height / dpr);
+      tip.hidden = true;
+    };
+    const show = (e) => {
+      const ps = plotState[key]; if (!ps) return;
+      const rect = overlay.getBoundingClientRect();
+      const hit = ps.hit(e.clientX - rect.left);
+      clear();
+      if (!hit) return;
+      const T = tokens(); const ctx = overlay.getContext('2d');
+      ctx.strokeStyle = T.ink3; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(Math.round(hit.px) + 0.5, ps.top); ctx.lineTo(Math.round(hit.px) + 0.5, ps.bottom); ctx.stroke();
+      dot(ctx, hit.px, hit.py, hit.color === 'accent' ? T.accent : T.trace, key === 'strip' ? T.paper : T.surface);
+      tip.innerHTML = hit.html; tip.hidden = false;
+      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      const visRight = scroller ? scroller.scrollLeft + scroller.clientWidth : ps.W;
+      const visLeft = scroller ? scroller.scrollLeft : 0;
+      let left = hit.px + 14;
+      if (left + tw > visRight - 4) left = hit.px - 14 - tw;
+      left = Math.max(visLeft + 4, left);
+      tip.style.left = left + 'px';
+      tip.style.top = Math.max(2, Math.min(ps.H - th - 2, hit.py - th / 2)) + 'px';
+    };
+    hitEl.addEventListener('pointermove', show);
+    hitEl.addEventListener('pointerdown', show);
+    hitEl.addEventListener('pointerleave', clear);
+    if (scroller) scroller.addEventListener('scroll', clear, { passive: true });
+  }
+
+  function setPill(el, q, text) {
+    el.dataset.q = q;
+    el.innerHTML = ICONS[q] + '<span>' + text + '</span>';
+  }
+
+  function render() {
+    const r = state.result;
+    $('#bpm').textContent = Math.round(r.bpmSpec);
+    $('#bpmSub').textContent = r.quality === 'poor' ? 'Low confidence. See the notes below.' : 'Strongest rhythm in the frequency spectrum';
+    setPill($('#qualityPill'), r.quality, QUALITY_TEXT[r.quality]);
+    $('#bpmBeats').textContent = r.stats ? r.stats.bpm.toFixed(1) + ' BPM' : 'Not enough clear beats';
+    $('#beats').textContent = String(r.beats.idx.length);
+    $('#rmssd').textContent = (r.stats && r.stats.rmssd != null && r.quality === 'good') ? Math.round(r.stats.rmssd) + ' ms' : 'Needs a cleaner signal';
+    $('#analyzed').textContent = r.analyzed.toFixed(1) + ' s, ' + r.channel + ' channel';
+    $('#recording').textContent = r.dur.toFixed(1) + ' s at ' + Math.round(r.fpsIn) + ' fps';
+    $('#rawChannel').textContent = r.channel;
+    const chip = $('#sourceChip');
+    if (state.source === 'example') {
+      chip.dataset.kind = 'example'; chip.textContent = 'Example result';
+      $('#sourceText').textContent = 'A synthetic 72 BPM trace, shown until you take your first measurement.';
+      $('#exampleBtn').hidden = true;
+    } else {
+      chip.dataset.kind = 'live'; chip.textContent = 'Your measurement';
+      $('#sourceText').textContent = state.label;
+      $('#exampleBtn').hidden = false;
+    }
+    const ul = $('#warnings');
+    ul.innerHTML = '';
+    for (const w of r.warnings) {
+      const li = document.createElement('li');
+      li.innerHTML = ICONS.warn;
+      const span = document.createElement('span'); span.textContent = w; li.appendChild(span);
+      ul.appendChild(li);
+    }
+    $('#csvFallback').hidden = true;
+    $('#copyMsg').textContent = 'Paste into a spreadsheet or Python to try your own filters.';
+    drawAll();
+  }
+
+  // ================= Live measurement =================
+  const LIVE_SEC = 30, SETTLE = 2, MIN_STOP_SEC = 12;
+  const BASE = { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } };
+  const cam = $('#cam');
+  const grabCanvas = document.createElement('canvas');
+  grabCanvas.width = 40; grabCanvas.height = 40;
+  const grabCtx = grabCanvas.getContext('2d', { willReadFrequently: true });
+
+  const live = {
+    running: false, mode: 'back', stream: null, track: null, torch: false,
+    fingerOn: false, onCount: 0, offCount: 0, everOn: false, lifted: false,
+    seg: null, est: [], lastEstAt: 0, shownBpm: null, quality: 'none',
+    lastBeat: 0, beatTimer: 0, amp: 0, raf: 0, interval: 0, wl: null
+  };
+
+  function newSeg() { return { t: [], r: [], g: [], b: [], clip: [] }; }
+
+  function cameraError(e) {
+    const name = e && e.name;
+    if (!window.isSecureContext) return 'The camera needs a secure https:// page. Open this page from its https link, not as a downloaded file.';
+    if (name === 'NotAllowedError' || name === 'SecurityError') return 'Camera permission was blocked. In Chrome, tap the icon left of the address, allow Camera, then press Start again.';
+    if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'No suitable camera was found on this device.';
+    if (name === 'NotReadableError' || name === 'AbortError') return 'The camera is busy. Close any other app that is using the camera, then press Start again.';
+    return 'The camera could not be started' + (e && e.message ? ' (' + e.message + ')' : '') + '.';
+  }
+
+  function stopStream(s) { if (s) s.getTracks().forEach(t => t.stop()); }
+  function torchCapable(s) {
+    const tr = s && s.getVideoTracks()[0];
+    try { return !!(tr && tr.getCapabilities && tr.getCapabilities().torch); } catch (e) { return false; }
+  }
+  function getStream(video) { return navigator.mediaDevices.getUserMedia({ audio: false, video }); }
+
+  async function openBack() {
+    const chosen = $('#camSelect').value;
+    let stream = await getStream(chosen ? { ...BASE, deviceId: { exact: chosen } } : { ...BASE, facingMode: { ideal: 'environment' } });
+    if (chosen || torchCapable(stream)) return stream;
+    // The default back camera has no flash control: look for the one that does.
+    const curId = stream.getVideoTracks()[0].getSettings().deviceId;
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    const candidates = devs.filter(d => d.deviceId && d.deviceId !== curId && !/front|user/i.test(d.label));
+    if (!candidates.length) return stream;
+    stopStream(stream); stream = null;
+    for (const d of candidates) {
+      try {
+        const s = await getStream({ ...BASE, deviceId: { exact: d.deviceId } });
+        if (torchCapable(s)) return s;
+        stopStream(s);
+      } catch (e) { /* try the next camera */ }
+    }
+    return getStream({ ...BASE, facingMode: { ideal: 'environment' } });
+  }
+
+  async function setTorch(on) {
+    const tr = live.track;
+    if (!tr) return false;
+    try {
+      await tr.applyConstraints({ advanced: [{ torch: on }] });
+      const st = tr.getSettings ? tr.getSettings() : {};
+      return st.torch === on || torchCapable(live.stream);
+    } catch (e) { return false; }
+  }
+
+  async function fillCameraList() {
+    try {
+      const sel = $('#camSelect'), keep = sel.value;
+      const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput' && d.label && !/front|user/i.test(d.label));
+      if (devs.length < 2) return;
+      sel.innerHTML = '<option value="">Automatic (finds the camera with the flash)</option>';
+      devs.forEach((d, i) => {
+        const o = document.createElement('option');
+        o.value = d.deviceId; o.textContent = d.label || ('Back camera ' + (i + 1));
+        sel.appendChild(o);
+      });
+      sel.value = keep;
+      if (live.mode === 'back' || $('#modeBack').checked) $('#camField').hidden = false;
+    } catch (e) { /* the list is optional */ }
+  }
+
+  function onFrame(now, meta) {
+    if (!live.running) return;
+    const ts = (meta && meta.captureTime ? meta.captureTime : now) / 1000;
+    grab(ts);
+    cam.requestVideoFrameCallback(onFrame);
+  }
+
+  let lastTs = -1;
+  function grab(ts) {
+    if (!(ts > lastTs) || !cam.videoWidth) return;
+    lastTs = ts;
+    const vw = cam.videoWidth, vh = cam.videoHeight, side = Math.min(vw, vh);
+    grabCtx.drawImage(cam, (vw - side) / 2, (vh - side) / 2, side, side, 0, 0, 40, 40);
+    const d = grabCtx.getImageData(0, 0, 40, 40).data;
+    let r = 0, g = 0, b = 0, c = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; if (d[i] >= 250) c++; }
+    const n = d.length / 4;
+    r /= n; g /= n; b /= n; c /= n;
+    const on = r > 45 && r > 1.5 * g && r > 1.5 * b;
+    if (on) { live.onCount++; live.offCount = 0; } else { live.offCount++; live.onCount = 0; }
+    if (!live.fingerOn && live.onCount >= 8) {
+      live.fingerOn = true; live.everOn = true; live.seg = newSeg(); live.est = []; live.shownBpm = null; live.amp = 0;
+    } else if (live.fingerOn && live.offCount >= 15) {
+      live.fingerOn = false; live.lifted = true; live.seg = null;
+    }
+    if (live.fingerOn && live.seg) {
+      const s = live.seg;
+      s.t.push(ts); s.r.push(r); s.g.push(g); s.b.push(b); s.clip.push(c);
+    }
+  }
+
+  function windowOf(seg, fromT) {
+    let i0 = 0;
+    while (i0 < seg.t.length && seg.t[i0] < fromT) i0++;
+    return { t: seg.t.slice(i0), r: seg.r.slice(i0), g: seg.g.slice(i0) };
+  }
+
+  function rawJitter(seg) {
+    const n = seg.r.length, k = Math.min(n, 30);
+    if (k < 10) return 0;
+    let m = 0; for (let i = n - k; i < n; i++) m += seg.r[i]; m /= k;
+    let v = 0; for (let i = n - k; i < n; i++) v += (seg.r[i] - m) ** 2;
+    return Math.sqrt(v / k);
+  }
+
+  function flashBeat() {
+    const el = $('#beatDot');
+    el.classList.add('on');
+    clearTimeout(live.beatTimer);
+    live.beatTimer = setTimeout(() => el.classList.remove('on'), 120);
+  }
+
+  function drawLive(disp) {
+    const cv = $('#liveCanvas');
+    const W = Math.max(240, cv.parentElement.clientWidth), H = 175;
+    const ctx = prep(cv, W, H);
+    const T = tokens($('#live'));
+    paperGrid(ctx, 0, 0, W, H, T, 5);
+    if (!disp) return;
+    const { y, t, beats, tEnd } = disp;
+    const PPS = W / 6;
+    const xs = (ts) => W - (tEnd - ts) * PPS;
+    const mid = H / 2, scale = (H * 0.4) / (live.amp || 1);
+    const ys = (v) => Math.min(H - 2, Math.max(2, mid - v * scale));
+    ctx.strokeStyle = T.trace; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < y.length; i++) {
+      const x = xs(t[i]); if (x < -4) continue;
+      const py = ys(y[i]);
+      if (!started) { ctx.moveTo(x, py); started = true; } else ctx.lineTo(x, py);
+    }
+    ctx.stroke();
+    for (const bt of beats) {
+      const x = xs(bt.t); if (x < 0) continue;
+      dot(ctx, x, ys(bt.v), T.accent, T.paper);
+    }
+  }
+
+  function liveTick() {
+    if (!live.running) return;
+    const seg = live.seg;
+    let measured = 0, disp = null;
+    if (live.fingerOn && seg && seg.t.length > 2) {
+      const tStart = seg.t[0], tEnd = seg.t[seg.t.length - 1];
+      measured = Math.max(0, tEnd - tStart - SETTLE);
+      if (measured > 1.5) {
+        const w = windowOf(seg, Math.max(tStart + SETTLE, tEnd - 8));
+        if (w.t.length > 20) {
+          const x = DSP.resample(w.t, w.r.map(v => -v), DSP.FS);
+          const y = DSP.bandpass(x, DSP.FS, DSP.LO, DSP.HI);
+          const t0 = w.t[0];
+          const tt = Array.from(y, (_, i) => t0 + i / DSP.FS);
+          const tail = Array.from(y.slice(Math.max(0, y.length - 6 * DSP.FS)), Math.abs).sort((a, b) => a - b);
+          const a = tail[Math.floor(tail.length * 0.95)] || 1;
+          live.amp = live.amp ? live.amp * 0.92 + a * 0.08 : a;
+          const hr = live.shownBpm ? live.shownBpm / 60 : 1.2;
+          const bt = DSP.detectBeats(y, DSP.FS, hr);
+          const beats = bt.idx.map((idx, k) => ({ t: t0 + bt.times[k], v: y[idx] }));
+          const lastT = tt[tt.length - 1];
+          for (const b of beats) {
+            if (b.t > live.lastBeat + 0.3 && b.t < lastT - 0.12 && b.t > lastT - 1.0) { live.lastBeat = b.t; if (live.shownBpm) flashBeat(); }
+          }
+          disp = { y, t: tt, beats, tEnd: lastT };
+        }
+      }
+      const nowMs = performance.now();
+      if (measured >= 5 && nowMs - live.lastEstAt > 1000) {
+        live.lastEstAt = nowMs;
+        const w = windowOf(seg, Math.max(tStart + SETTLE, tEnd - 12));
+        const q = DSP.quick(w.t, w.r, w.g);
+        live.quality = q.snrDb >= 3 ? 'good' : q.snrDb >= 1 ? 'fair' : 'poor';
+        if (q.snrDb >= 1) {
+          live.est.push(q.bpm); if (live.est.length > 4) live.est.shift();
+          const s = [...live.est].sort((x, y) => x - y);
+          live.shownBpm = s[s.length >> 1];
+        }
+      }
+    }
+
+    // Status text
+    let status;
+    const front = live.mode === 'front';
+    if (!live.fingerOn) {
+      status = live.lifted ? 'Finger lifted. Place it back to start over.'
+        : front ? 'Rest your fingertip on the front camera at the top of the screen.'
+        : 'Cover the main camera lens with your fingertip.';
+    } else if (measured <= 0) status = 'Finger detected. Hold still…';
+    else if (rawJitter(seg) > 8) status = 'Too much movement. Rest your hand and hold still.';
+    else if (!live.shownBpm) status = 'Finding your pulse…';
+    else if (live.quality === 'poor') status = 'Weak signal. Try pressing more lightly.';
+    else status = 'Measuring. Keep still.';
+    $('#liveStatus').textContent = status;
+
+    $('#liveBpm').textContent = live.shownBpm ? Math.round(live.shownBpm) : '--';
+    const shownQ = live.fingerOn && measured >= 5 ? live.quality : 'none';
+    setPillIfChanged($('#livePill'), shownQ);
+    const secs = Math.min(LIVE_SEC, measured);
+    $('#liveTimer').textContent = Math.floor(secs) + ' / ' + LIVE_SEC + ' s';
+    $('#liveBar').style.width = (secs / LIVE_SEC * 100) + '%';
+    drawLive(disp);
+
+    if (measured >= LIVE_SEC) { finish(); return; }
+    live.raf = requestAnimationFrame(liveTick);
+  }
+
+  let lastPillQ = '';
+  function setPillIfChanged(el, q) {
+    if (q === lastPillQ) return;
+    lastPillQ = q;
+    setPill(el, q, q === 'none' ? 'Waiting for signal' : QUALITY_TEXT[q]);
+  }
+
+  async function start() {
+    showError('');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showError(cameraError(null)); return; }
+    const mode = $('#modeFront').checked ? 'front' : 'back';
+    live.mode = mode;
+    const ov = $('#live');
+    ov.dataset.mode = mode;
+    $('#liveMode').textContent = mode === 'front' ? 'Front camera + screen light' : 'Back camera + flash';
+    $('#liveStatus').textContent = 'Starting the camera…';
+    $('#liveBpm').textContent = '--';
+    $('#liveNote').textContent = '';
+    lastPillQ = ''; setPillIfChanged($('#livePill'), 'none');
+    $('#liveTimer').textContent = '0 / ' + LIVE_SEC + ' s';
+    $('#liveBar').style.width = '0%';
+    ov.hidden = false;
+    document.body.style.overflow = 'hidden';
+    drawLive(null);
+
+    try {
+      live.stream = mode === 'front' ? await getStream({ ...BASE, facingMode: 'user' }) : await openBack();
+      live.track = live.stream.getVideoTracks()[0];
+      cam.srcObject = live.stream;
+      await cam.play();
+    } catch (e) {
+      cleanup();
+      showError(cameraError(e));
+      return;
+    }
+    if (mode === 'back') {
+      live.torch = await setTorch(true);
+      $('#liveNote').textContent = live.torch
+        ? 'Flash on: ' + (live.track.label || 'back camera')
+        : 'This camera does not offer flash control. Pick another camera from the list on the main page, or measure in bright light.';
+    } else {
+      $('#liveNote').textContent = 'Screen brightness all the way up gives the strongest signal.';
+    }
+    fillCameraList();
+
+    Object.assign(live, { running: true, fingerOn: false, onCount: 0, offCount: 0, everOn: false, lifted: false, seg: null, est: [], shownBpm: null, quality: 'none', lastBeat: 0, amp: 0, lastEstAt: 0 });
+    lastTs = -1;
+    try { if (navigator.wakeLock) live.wl = await navigator.wakeLock.request('screen'); } catch (e) { live.wl = null; }
+    if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) cam.requestVideoFrameCallback(onFrame);
+    else live.interval = setInterval(() => grab(performance.now() / 1000), 30);
+    live.raf = requestAnimationFrame(liveTick);
+  }
+
+  function cleanup() {
+    live.running = false;
+    cancelAnimationFrame(live.raf);
+    clearInterval(live.interval);
+    if (live.track && live.torch) { try { live.track.applyConstraints({ advanced: [{ torch: false }] }); } catch (e) {} }
+    stopStream(live.stream);
+    live.stream = null; live.track = null; live.torch = false;
+    cam.srcObject = null;
+    try { if (live.wl) live.wl.release(); } catch (e) {}
+    live.wl = null;
+    $('#live').hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function finish(early) {
+    const seg = live.seg;
+    const mode = live.mode;
+    cleanup();
+    if (!seg || seg.t.length < 2) {
+      if (early) showError('Stopped before a finger was detected on the camera.');
+      return;
+    }
+    const measured = seg.t[seg.t.length - 1] - seg.t[0] - SETTLE;
+    if (early && measured < MIN_STOP_SEC) {
+      showError('Stopped after ' + Math.max(0, measured).toFixed(0) + ' seconds. Measure for at least ' + MIN_STOP_SEC + ' seconds to get a result.');
+      return;
+    }
+    const res = DSP.analyze(seg);
+    if (res.error) { showError(res.error); return; }
+    state.samples = seg; state.result = res; state.source = 'live';
+    state.label = (mode === 'front' ? 'Front camera + screen light' : 'Back camera + flash') + ', ' +
+      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    render();
+    $('#readout').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  function showError(msg) { const e = $('#errorMsg'); e.textContent = msg || ''; e.hidden = !msg; }
+
+  $('#startBtn').addEventListener('click', start);
+  $('#stopBtn').addEventListener('click', () => finish(true));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && live.running) {
+      cleanup();
+      showError('The measurement stopped because the page went to the background. Press Start to measure again.');
+    }
+  });
+
+  function syncMode() {
+    const front = $('#modeFront').checked;
+    $('#howtoBack').hidden = front;
+    $('#howtoFront').hidden = !front;
+    $('#howtoTitle').textContent = front ? 'Front camera' : 'Back camera';
+    $('#camField').hidden = front || $('#camSelect').options.length < 2;
+  }
+  $('#modeBack').addEventListener('change', syncMode);
+  $('#modeFront').addEventListener('change', syncMode);
+
+  $('#exampleBtn').addEventListener('click', () => {
+    state.samples = DSP.makeExample(); state.result = DSP.analyze(state.samples); state.source = 'example';
+    render();
+  });
+
+  function toCSV() {
+    const s = state.samples, t0 = s.t[0];
+    const rows = ['time_s,red,green,blue,clipped_fraction'];
+    for (let i = 0; i < s.t.length; i++) {
+      rows.push((s.t[i] - t0).toFixed(4) + ',' + s.r[i].toFixed(3) + ',' + s.g[i].toFixed(3) + ',' + s.b[i].toFixed(3) + ',' + s.clip[i].toFixed(4));
+    }
+    return rows.join('\n');
+  }
+  $('#copyBtn').addEventListener('click', () => {
+    const text = toCSV(), n = state.samples.t.length;
+    const fallback = () => {
+      const ta = $('#csvFallback'); ta.value = text; ta.hidden = false; ta.focus(); ta.select();
+      $('#copyMsg').textContent = 'Copying was blocked. The data is selected below, so copy it from there.';
+    };
+    try {
+      navigator.clipboard.writeText(text).then(() => { $('#copyMsg').textContent = 'Copied ' + n + ' rows.'; }).catch(fallback);
+    } catch (e) { fallback(); }
+  });
+
+  // ---------- Boot ----------
+  if (!window.isSecureContext) $('#insecureNotice').hidden = false;
+  attachHover('#rawPlot', 'raw');
+  attachHover('#stripPlot', 'strip', $('#stripScroll'));
+  attachHover('#specPlot', 'spec');
+  syncMode();
+
+  state.samples = DSP.makeExample();
+  state.result = DSP.analyze(state.samples);
+  render();
+
+  let raf = 0;
+  const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawAll); };
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(redraw);
+    ro.observe($('#rawPlot')); ro.observe($('#specPlot'));
+  } else {
+    window.addEventListener('resize', redraw);
+  }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+})();
+</script>
+</body>
+</html>
