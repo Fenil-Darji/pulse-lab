@@ -27,6 +27,10 @@
   --good: #1E7A4C; --good-bg: #E4F2EA;
   --warn: #8F5A05; --warn-bg: #F7EEDC;
   --bad: #AF420E;  --bad-bg: #F9E6DC;
+  --alert: #D3261E; --alert-ink: #FFFFFF;
+  --ok: #1E8A50; --ok-ink: #FFFFFF;
+  --absent: #CFC6C8;
+  --sign-w: clamp(104px, 17vw, 190px);
   --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
   --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -42,6 +46,9 @@
     --good: #52C58C; --good-bg: #173226;
     --warn: #E3A63F; --warn-bg: #33270F;
     --bad: #FF8656;  --bad-bg: #3A1E12;
+    --alert: #E5392F; --alert-ink: #FFFFFF;
+    --ok: #1F9A58; --ok-ink: #FFFFFF;
+    --absent: #4A4249;
     color-scheme: dark;
   }
 }
@@ -54,6 +61,9 @@
   --good: #52C58C; --good-bg: #173226;
   --warn: #E3A63F; --warn-bg: #33270F;
   --bad: #FF8656;  --bad-bg: #3A1E12;
+  --alert: #E5392F; --alert-ink: #FFFFFF;
+  --ok: #1F9A58; --ok-ink: #FFFFFF;
+  --absent: #4A4249;
   color-scheme: dark;
 }
 
@@ -353,6 +363,83 @@ select {
   background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 8px;
 }
 
+/* Posture: the big status sign */
+.psign {
+  position: fixed; z-index: 40;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  width: var(--sign-w);
+  display: grid; justify-items: center; gap: 8px;
+  pointer-events: none;
+}
+.psign-icon { width: 100%; aspect-ratio: 1 / 1; display: grid; place-items: center; }
+.psign-icon svg { width: 100%; height: 100%; display: none; filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.18)); }
+.psign[data-state="bad"] .i-bad,
+.psign[data-state="good"] .i-good,
+.psign[data-state="calib"] .i-wait,
+.psign[data-state="absent"] .i-wait { display: block; }
+.i-bad .tri { fill: var(--alert); stroke: var(--alert); stroke-width: 9; stroke-linejoin: round; }
+.i-bad .mark { fill: var(--alert-ink); }
+.i-good .disc { fill: var(--ok); }
+.i-good .tick { fill: none; stroke: var(--ok-ink); stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+.i-wait .ring { fill: var(--surface); stroke: var(--ink-3); stroke-width: 5; }
+.i-wait text { fill: var(--ink-2); font-family: var(--font-display); font-weight: 600; font-size: 46px; }
+.psign-label {
+  font-weight: 600; font-size: clamp(14px, 1.6vw, 17px); line-height: 1.2; text-align: center;
+  padding: 5px 12px; border-radius: 999px; max-width: 100%;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--rule);
+}
+.psign[data-state="bad"] .psign-label { background: var(--alert); color: var(--alert-ink); border-color: var(--alert); }
+.psign[data-state="good"] .psign-label { background: var(--ok); color: var(--ok-ink); border-color: var(--ok); }
+/* One flash per second: well under the 3-per-second limit for photosensitive viewers. */
+.psign[data-state="bad"] .psign-icon { animation: psign-flash 1s steps(1, end) infinite; }
+@keyframes psign-flash { 0% { opacity: 1; } 50% { opacity: 0.12; } }
+
+/* Posture: live monitor */
+.live-posture .live-inner { max-width: 600px; }
+.pcam-wrap {
+  position: relative; justify-self: center; width: 100%; max-width: 100%;
+  aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #000;
+}
+.pcam-wrap video, .pcam-wrap canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  transform: scaleX(-1);
+}
+.pcam-wrap video { object-fit: cover; }
+.pchecks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pchecks li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(70px, 38%) 2.6em; align-items: center; gap: 12px; font-size: 14.5px; }
+.pchecks[data-idle="true"] { opacity: 0.5; }
+.pc-meter { position: relative; height: 8px; border-radius: 4px; background: var(--rule); }
+.pc-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 4px; background: var(--good); }
+.pchecks li[data-over="true"] .pc-fill { background: var(--bad); }
+.pc-limit { position: absolute; left: 66.67%; top: -4px; width: 2px; height: 16px; border-radius: 1px; background: var(--ink-2); }
+.pc-state { font-size: 13px; color: var(--ink-3); text-align: right; }
+.pchecks li[data-over="true"] .pc-state { color: var(--ink); font-weight: 600; }
+.ptoggles { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-2); cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.capture-lede { color: var(--ink-2); font-size: 15px; max-width: 60ch; }
+@media (max-width: 960px) {
+  .live-posture .live-inner { padding-top: calc(var(--sign-w) + 64px + env(safe-area-inset-top, 0px)); }
+}
+
+/* Floating always-on-top window */
+.pip-body {
+  margin: 0; min-height: 100vh; padding: 14px;
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  display: grid; justify-items: center; align-content: center; gap: 10px; text-align: center;
+}
+.pip-body .psign { position: static; width: min(150px, 62vw); }
+.pip-issue { margin: 0; font-size: 13.5px; color: var(--ink-2); min-height: 1.3em; }
+
+/* Posture: session timeline */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.legend i[data-s="good"] { background: var(--good); }
+.legend i[data-s="bad"] { background: var(--bad); }
+.legend i[data-s="absent"] { background: var(--absent); }
+
 @media (max-width: 680px) {
   .readout-top, .capture, .method { grid-template-columns: minmax(0, 1fr); }
   .hero-num { font-size: 72px; }
@@ -365,20 +452,23 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .btn, .beat { transition: none; }
   .beat.on { transform: none; }
+  .psign[data-state="bad"] .psign-icon { animation: psign-pulse 2s ease-in-out infinite; }
 }
+@keyframes psign-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 </style>
 </head>
 <body>
 <main class="sheet">
   <header class="masthead">
-    <p class="eyebrow">Phone sensing · version 3</p>
+    <p class="eyebrow">Phone sensing · version 4</p>
     <h1>Phone Vitals Lab</h1>
-    <p class="lede">Measure your pulse with the camera, and your breathing with the motion sensors and a sonar made from the speaker and microphone. Every result can be checked against a reference and saved to a validation log.</p>
+    <p class="lede">Measure your pulse with the camera, your breathing with the motion sensors and a speaker-and-microphone sonar, and keep your posture in check with the front camera of any phone or laptop.</p>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Measurement">
     <button type="button" role="tab" id="tabPulse" aria-controls="panelPulse" aria-selected="true">Pulse</button>
     <button type="button" role="tab" id="tabBreath" aria-controls="panelBreath" aria-selected="false" tabindex="-1">Breathing</button>
+    <button type="button" role="tab" id="tabPosture" aria-controls="panelPosture" aria-selected="false" tabindex="-1">Posture</button>
   </nav>
 
   <div class="panel" id="panelPulse" role="tabpanel" aria-labelledby="tabPulse">
@@ -570,7 +660,7 @@ select {
           <li><span>Rest your arms by your sides and <strong>breathe normally</strong>. A chime marks the start and the end of the 60-second window.</span></li>
           <li><span>To check accuracy, <strong>count each breath out</strong> between the two chimes, or ask someone to watch and count.</span></li>
         </ol>
-        <ol class="howto" id="howtoFront" hidden>
+        <ol class="howto" id="howtoBrFront" hidden>
           <li><span>Turn the <strong>media volume up</strong>.</span></li>
           <li><span>Sit back or lie down. Prop the phone <strong>20 to 40 cm from your chest</strong>, bottom edge (speaker and microphone) pointing at your chest, for example on a pillow on your lap.</span></li>
           <li><span>Don't hold it. <strong>Hand movement</strong> is larger than breathing movement and swamps the sonar.</span></li>
@@ -662,6 +752,119 @@ select {
     </div>
   </div>
 
+  <div class="panel" id="panelPosture" role="tabpanel" aria-labelledby="tabPosture" hidden>
+    <section class="capture" id="pCapture">
+      <div class="capture-main">
+        <h2>Watch my posture</h2>
+        <p class="capture-lede">Uses the front camera of this phone or laptop. A big sign in the top-right corner flashes while your posture needs fixing and turns green as soon as it is fixed. It keeps checking until you press End or close the tab.</p>
+        <div class="field-row">
+          <label class="field" for="pLevel">Sensitivity
+            <select id="pLevel">
+              <option value="relaxed">Relaxed</option>
+              <option value="normal" selected>Normal</option>
+              <option value="strict">Strict</option>
+            </select>
+          </label>
+          <label class="field" for="pDelay">Warn after
+            <select id="pDelay">
+              <option value="1">1 second</option>
+              <option value="3" selected>3 seconds</option>
+              <option value="10">10 seconds</option>
+              <option value="30">30 seconds</option>
+            </select>
+          </label>
+        </div>
+        <label class="check" for="pSound"><input type="checkbox" id="pSound"><span>Beep when a warning starts, then every 20 seconds while it lasts</span></label>
+        <button type="button" class="btn" id="pStart">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.3 6.9v6.2l5-3.1z" fill="currentColor"/></svg>
+          Start posture check
+        </button>
+        <p class="error" id="pError" role="alert" hidden></p>
+      </div>
+      <div class="howto-wrap">
+        <p class="howto-title">Setup</p>
+        <ol class="howto">
+          <li><span>Put the camera at about <strong>eye level</strong>, facing you. Prop a phone up rather than holding it.</span></li>
+          <li><span>Sit <strong>50 to 80 cm</strong> away, so your <strong>head and both shoulders</strong> are in view.</span></li>
+          <li><span>When the check starts, <strong>sit up straight</strong> and look at the screen for 5 seconds. That posture becomes your target.</span></li>
+          <li><span>Carry on working. Press <strong>End</strong> when you are done.</span></li>
+        </ol>
+        <p class="footnote">The video is analysed on this device and never uploaded. The pose model (about 15 MB) downloads the first time.</p>
+      </div>
+    </section>
+
+    <section class="readout" aria-live="polite" id="pReadout">
+      <div class="readout-top">
+        <div class="hero">
+          <span class="label">Upright</span>
+          <span class="hero-val"><span class="hero-num" id="pUpright">--</span><span class="hero-unit">% of the time</span></span>
+          <span class="hero-sub" id="pSub">Share of the time in view that the green sign was showing</span>
+        </div>
+        <dl class="stats">
+          <div><dt>Time monitored</dt><dd id="pDur">--</dd></div>
+          <div><dt>Warnings</dt><dd id="pWarn">--</dd></div>
+          <div><dt>Most common issue</dt><dd id="pIssue">--</dd></div>
+          <div><dt>Longest warning</dt><dd id="pLongest">--</dd></div>
+          <div><dt>Out of view</dt><dd id="pAbsent">--</dd></div>
+          <div><dt>Settings</dt><dd id="pSettings">--</dd></div>
+        </dl>
+      </div>
+      <p class="source">
+        <span class="chip" id="pChip" data-kind="example">Example result</span>
+        <span id="pSourceText">A made-up 25-minute session, shown until you finish your first posture check.</span>
+        <button type="button" class="textbtn" id="pExampleBtn" hidden>Show the example again</button>
+      </p>
+    </section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2>Session timeline</h2>
+        <p>Which sign was showing over the session.</p>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i data-s="good"></i>Green sign, upright</span>
+        <span><i data-s="bad"></i>Warning sign</span>
+        <span><i data-s="absent"></i>Out of view</span>
+      </div>
+      <div class="plot plot-fit" id="pTimeline">
+        <canvas class="base" aria-label="Posture over the session"></canvas>
+        <canvas class="overlay" aria-hidden="true"></canvas>
+        <div class="hit"></div>
+        <div class="tip" hidden></div>
+      </div>
+    </section>
+
+    <div class="method">
+      <section>
+        <h2>How the page checks posture</h2>
+        <ol>
+          <li><strong>Find your pose.</strong> A pose model (Google's MediaPipe Pose Landmarker) locates your nose, eyes, ears and shoulders in the camera image about 5 times a second.</li>
+          <li><strong>Learn your upright posture.</strong> During calibration it records where your head sits relative to your shoulders while you sit up straight.</li>
+          <li><strong>Compare every frame with that target.</strong> Six checks run at once:
+            <ul>
+              <li><strong>Slouching:</strong> your head sinks toward your shoulders.</li>
+              <li><strong>Head pushed forward:</strong> your head looks bigger compared with your shoulders, because it moved toward the camera.</li>
+              <li><strong>Too close to the screen:</strong> your shoulders look wider than at calibration.</li>
+              <li><strong>Looking down:</strong> your nose drops below the line of your ears.</li>
+              <li><strong>Head tilted</strong> and <strong>shoulders uneven:</strong> the ear line or shoulder line tilts away from its calibrated angle.</li>
+            </ul>
+          </li>
+          <li><strong>Warn after a delay.</strong> A problem has to last for the "Warn after" time before the sign turns red, so reaching for a cup does not set it off. Once you fix it, the sign turns green within 0.6 seconds, or within 2 seconds if you are only just inside the limit.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Limits of this version</h2>
+        <ul>
+          <li>A single camera sees you from the front, so it judges posture from indirect clues. Treat it as a reminder, not a medical assessment.</li>
+          <li>Recalibrate after moving the camera or changing chairs, because the target depends on where the camera is.</li>
+          <li>Dim light, hair over the ears and a busy background make the pose less steady.</li>
+          <li>On a laptop it keeps checking in a background tab, but you only see the sign while the page is visible. Turn on the sound, or use the floating window in Chrome or Edge.</li>
+          <li>On a phone, the camera pauses when you switch apps, so keep the page on screen.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
   <section class="log" id="logSection">
     <div class="chart-head">
       <h2>Validation log</h2>
@@ -709,6 +912,40 @@ select {
     <div class="live-actions">
       <button type="button" class="btn" id="stopBtn">Stop</button>
     </div>
+  </div>
+</div>
+
+<div class="live live-posture" id="livePosture" hidden>
+  <div class="live-inner">
+    <div class="live-top">
+      <span class="chip">Posture check</span>
+      <span class="live-timer" id="pTimer">00:00</span>
+    </div>
+    <p class="live-status" id="pStatus" aria-live="polite">Starting the camera…</p>
+    <div class="pcam-wrap" id="pCamWrap">
+      <video id="pCam" muted playsinline autoplay></video>
+      <canvas id="pOverlay" aria-hidden="true"></canvas>
+    </div>
+    <ul class="pchecks" id="pChecks" data-idle="true" aria-label="Posture checks"></ul>
+    <p class="live-note" id="pLiveStats"></p>
+    <div class="live-actions">
+      <button type="button" class="btn" id="pEnd">End</button>
+      <button type="button" class="btn-quiet" id="pRecal">Recalibrate</button>
+      <button type="button" class="btn-quiet" id="pPip" hidden>Keep on top of other windows</button>
+    </div>
+    <div class="ptoggles">
+      <label class="check" for="pSoundLive"><input type="checkbox" id="pSoundLive"><span>Sound</span></label>
+      <label class="check" for="pShowCam"><input type="checkbox" id="pShowCam" checked><span>Show camera</span></label>
+    </div>
+    <p class="live-note" id="pLiveNote"></p>
+  </div>
+  <div class="psign" id="pSign" data-state="calib">
+    <div class="psign-icon">
+      <svg class="i-bad" viewBox="0 0 100 100" aria-hidden="true"><path class="tri" d="M50 9 L93 86 H7 Z"/><rect class="mark" x="45" y="33" width="10" height="31" rx="5"/><circle class="mark" cx="50" cy="75" r="6"/></svg>
+      <svg class="i-good" viewBox="0 0 100 100" aria-hidden="true"><circle class="disc" cx="50" cy="50" r="46"/><path class="tick" d="M28 52 L44 68 L73 35"/></svg>
+      <svg class="i-wait" viewBox="0 0 100 100" aria-hidden="true"><circle class="ring" cx="50" cy="50" r="44"/><text x="50" y="52" text-anchor="middle" dominant-baseline="middle">…</text></svg>
+    </div>
+    <div class="psign-label" role="status">Calibrating</div>
   </div>
 </div>
 
@@ -1288,6 +1525,96 @@ const DSP = (() => {
   return { makeExample, analyze, quick, resample, bandpass, spectrum, detectBeats, beatStats, FS, LO, HI, breath };
 })();
 // DSP-END
+
+// POSTURE-START
+// Posture from pose landmarks (MediaPipe numbering: 0 nose, 2/5 eyes, 7/8 ears, 11/12 shoulders).
+// Every check compares the current frame with the calibrated upright posture; a score of 1 is the limit.
+const POSTURE = (() => {
+  const LEVELS = {
+    relaxed: { slouch: 0.22, forward: 0.15, close: 0.25, down: 0.22, headTilt: 14, shoulders: 9 },
+    normal:  { slouch: 0.14, forward: 0.10, close: 0.17, down: 0.15, headTilt: 10, shoulders: 6 },
+    strict:  { slouch: 0.09, forward: 0.07, close: 0.11, down: 0.10, headTilt: 7,  shoulders: 4 }
+  };
+  const CHECKS = [
+    { key: 'slouch',    label: 'Slouching',               fix: 'Sit up tall' },
+    { key: 'forward',   label: 'Head pushed forward',     fix: 'Pull your head back' },
+    { key: 'close',     label: 'Too close to the screen', fix: 'Lean back' },
+    { key: 'down',      label: 'Looking down',            fix: 'Lift your chin' },
+    { key: 'headTilt',  label: 'Head tilted',             fix: 'Level your head' },
+    { key: 'shoulders', label: 'Shoulders uneven',        fix: 'Level your shoulders' }
+  ];
+  const deg = (r) => r * 180 / Math.PI;
+  const vis = (p) => (p && typeof p.visibility === 'number' ? p.visibility : 1);
+  function lineAngle(a, b) {
+    let ang = deg(Math.atan2(a.y - b.y, a.x - b.x));
+    if (ang > 90) ang -= 180; else if (ang <= -90) ang += 180;
+    return ang;
+  }
+  function angDiff(a, b) { const d = Math.abs(a - b) % 180; return Math.min(d, 180 - d); }
+  function median(a) {
+    const s = a.slice().sort((x, y) => x - y), n = s.length;
+    return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : NaN;
+  }
+
+  function features(lm, w, h) {
+    if (!lm || lm.length < 13) return { ok: false, why: 'none' };
+    const P = (i) => ({ x: lm[i].x * w, y: lm[i].y * h, v: vis(lm[i]) });
+    const inside = (p) => p.x > -0.02 * w && p.x < 1.02 * w && p.y > -0.02 * h && p.y < 1.02 * h;
+    const ls = P(11), rs = P(12), nose = P(0);
+    if (ls.v < 0.5 || rs.v < 0.5 || !inside(ls) || !inside(rs)) return { ok: false, why: 'shoulders' };
+    const side = Math.max(w, h);
+    const sw = Math.hypot(ls.x - rs.x, ls.y - rs.y);
+    if (sw < 0.1 * side) return { ok: false, why: 'far' };
+    if (nose.v < 0.5 || !inside(nose)) return { ok: false, why: 'face' };
+    const sm = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 };
+    const head = (a, b) => {
+      if (a.v < 0.5 || b.v < 0.5) return null;
+      const hw = Math.hypot(a.x - b.x, a.y - b.y);
+      if (!(hw > 0.06 * sw)) return null;
+      const m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      return { neck: (sm.y - m.y) / sw, ratio: hw / sw, tilt: lineAngle(a, b), down: (nose.y - m.y) / hw, mid: m, a, b, hw };
+    };
+    const ear = head(P(7), P(8)), eye = head(P(2), P(5));
+    if (!ear && !eye) return { ok: false, why: 'face' };
+    return { ok: true, scale: sw / side, sTilt: lineAngle(ls, rs), sw, sm, ls, rs, nose, ear, eye };
+  }
+
+  function makeBaseline(list) {
+    const ok = list.filter(f => f && f.ok);
+    if (ok.length < 8) return null;
+    const part = (k) => {
+      const xs = ok.filter(f => f[k]);
+      if (xs.length < Math.max(6, 0.6 * ok.length)) return null;
+      return {
+        neck: median(xs.map(f => f[k].neck)), ratio: median(xs.map(f => f[k].ratio)),
+        tilt: median(xs.map(f => f[k].tilt)), down: median(xs.map(f => f[k].down))
+      };
+    };
+    const base = { scale: median(ok.map(f => f.scale)), sTilt: median(ok.map(f => f.sTilt)), ear: part('ear'), eye: part('eye'), n: ok.length };
+    return base.ear || base.eye ? base : null;
+  }
+
+  function scores(f, base, level) {
+    const T = LEVELS[level] || LEVELS.normal;
+    const kind = f.ear && base.ear ? 'ear' : (f.eye && base.eye ? 'eye' : null);
+    if (!kind) return null;
+    const c = f[kind], b = base[kind];
+    return {
+      kind,
+      s: {
+        slouch: ((b.neck - c.neck) / Math.max(0.2, Math.abs(b.neck))) / T.slouch,
+        forward: (c.ratio / b.ratio - 1) / T.forward,
+        close: (f.scale / base.scale - 1) / T.close,
+        down: (c.down - b.down) / T.down,
+        headTilt: angDiff(c.tilt, b.tilt) / T.headTilt,
+        shoulders: angDiff(f.sTilt, base.sTilt) / T.shoulders
+      }
+    };
+  }
+
+  return { LEVELS, CHECKS, features, makeBaseline, scores, median };
+})();
+// POSTURE-END
 
 // Validation log, kept in this browser only.
 const VLog = (() => {
@@ -2519,7 +2846,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   function syncPlace() {
     const front = $('#placeFront').checked;
     $('#howtoChest').hidden = front;
-    $('#howtoFront').hidden = !front;
+    $('#howtoBrFront').hidden = !front;
     $('#brHowtoTitle').textContent = front ? 'Phone in front of chest' : 'Phone on chest';
   }
   $('#placeChest').addEventListener('change', syncPlace);
@@ -2646,7 +2973,8 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   // ================= Tabs =================
   const tabs = [
     { btn: $('#tabPulse'), panel: $('#panelPulse'), hash: 'pulse' },
-    { btn: $('#tabBreath'), panel: $('#panelBreath'), hash: 'breathing' }
+    { btn: $('#tabBreath'), panel: $('#panelBreath'), hash: 'breathing' },
+    { btn: $('#tabPosture'), panel: $('#panelPosture'), hash: 'posture' }
   ];
   function selectTab(i, focus) {
     tabs.forEach((t, k) => {
@@ -2655,9 +2983,15 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
       t.btn.tabIndex = on ? 0 : -1;
       t.panel.hidden = !on;
     });
+    // The validation log covers pulse and breathing only.
+    $('#logSection').hidden = i === 2;
     if (focus) tabs[i].btn.focus();
     try { history.replaceState(null, '', '#' + tabs[i].hash); } catch (e) {}
-    requestAnimationFrame(() => { if (i === 0) window.FPLUI.redrawPulse(); else drawB(); });
+    requestAnimationFrame(() => {
+      if (i === 0) window.FPLUI.redrawPulse();
+      else if (i === 1) drawB();
+      else if (window.FPLUI.redrawPosture) window.FPLUI.redrawPosture();
+    });
   }
   tabs.forEach((t, i) => {
     t.btn.addEventListener('click', () => selectTab(i));
@@ -2675,7 +3009,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   renderB();
   renderLog();
   syncPlace();
-  selectTab(location.hash === '#breathing' ? 1 : 0);
+  selectTab(Math.max(0, tabs.findIndex(t => '#' + t.hash === location.hash)));
 
   let raf = 0;
   const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawB); };
@@ -2687,6 +3021,661 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   }
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
   new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+})();
+</script>
+<script>
+// ================= Posture tab =================
+(() => {
+  const { prep, tokens, attachHover } = window.FPLUI;
+  const $ = (s) => document.querySelector(s);
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const LIB = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35';
+  const MODEL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+  const CALIB_WAIT = 3, CALIB_LEN = 2.5, CLEAR_MS = 600, CLEAR_SLOW_MS = 2000, ABSENT_MS = 1500, BEEP_EVERY = 20000;
+  const TICK_VISIBLE = 200, TICK_HIDDEN = 500;
+  const LEVEL_TEXT = { relaxed: 'Relaxed', normal: 'Normal', strict: 'Strict' };
+  const STATE_TEXT = { good: 'Green sign, upright', bad: 'Warning sign', absent: 'Out of view' };
+  const CHECK = Object.fromEntries(POSTURE.CHECKS.map(c => [c.key, c]));
+  const TITLE0 = document.title;
+  const WHY = {
+    none: 'No one in view. Sit in front of the camera.',
+    shoulders: 'Move back or tilt the camera down so both shoulders are in view.',
+    far: 'Move a little closer to the camera.',
+    face: 'Face the camera so your eyes and ears are visible.'
+  };
+
+  // ---------- Pose model (loaded once, kept for later sessions) ----------
+  let mpModule = null, mpFiles = null, model = null;
+  async function createLandmarker(delegate) {
+    if (!mpModule) mpModule = await import(LIB + '/vision_bundle.mjs');
+    if (!mpFiles) mpFiles = await mpModule.FilesetResolver.forVisionTasks(LIB + '/wasm');
+    // IMAGE mode finds the person afresh in every frame. VIDEO mode is faster, but its tracking
+    // can lock onto a wrong shoulder position and never recover, which would give false warnings for hours.
+    return mpModule.PoseLandmarker.createFromOptions(mpFiles, {
+      baseOptions: { modelAssetPath: MODEL, delegate },
+      runningMode: 'IMAGE', numPoses: 1,
+      minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5
+    });
+  }
+  async function getModel() {
+    if (model) return model;
+    try { model = { lm: await createLandmarker('GPU'), delegate: 'GPU' }; }
+    catch (e) { model = { lm: await createLandmarker('CPU'), delegate: 'CPU' }; }
+    return model;
+  }
+  async function fallbackToCPU() {
+    try { model && model.lm.close(); } catch (e) {}
+    model = null;
+    model = { lm: await createLandmarker('CPU'), delegate: 'CPU' };
+    return model;
+  }
+
+  // ---------- A timer that keeps running in background tabs ----------
+  // Browsers slow down page timers in hidden tabs; a worker's timer keeps a steady beat.
+  const TICK_SRC = 'let id=0;onmessage=function(e){clearInterval(id);id=e.data>0?setInterval(function(){postMessage(1)},e.data):0;};';
+  let ticker = null, tickerFallback = 0;
+  function startTicker(ms) {
+    if (!ticker) {
+      try { ticker = new Worker(URL.createObjectURL(new Blob([TICK_SRC], { type: 'text/javascript' }))); ticker.onmessage = () => tick(); }
+      catch (e) { ticker = null; }
+    }
+    if (ticker) ticker.postMessage(ms);
+    else { clearInterval(tickerFallback); tickerFallback = setInterval(tick, ms); }
+  }
+  function stopTicker() {
+    if (ticker) ticker.postMessage(0);
+    clearInterval(tickerFallback); tickerFallback = 0;
+  }
+
+  // ---------- Session state ----------
+  const P = { running: false, phase: 'idle' };
+  function freshSession() {
+    Object.assign(P, {
+      stream: null, track: null, capture: null, lm: null, delegate: '', busy: false, errors: 0, detMs: 0, detN: 0,
+      level: $('#pLevel').value, delay: +$('#pDelay').value, sound: $('#pSound').checked,
+      calibStart: 0, calibFrames: [], countdown: 0, base: null, smooth: null, lastTick: 0,
+      state: 'calib', badSince: null, goodSince: null, absentSince: null, badStart: 0, lastBeep: 0,
+      mon: 0, good: 0, bad: 0, absent: 0, warnings: 0, longest: 0, issues: {}, timeline: [],
+      over: [], feat: null, frameW: 0, frameH: 0, statusMsg: '', lastStatus: '', wl: null, pip: null
+    });
+  }
+  if (/[?&]debug\b/.test(location.search)) window.__posture = P;
+
+  // ---------- Camera ----------
+  function camErr(e) {
+    const n = e && e.name;
+    if (!window.isSecureContext) return 'The camera needs a secure https:// page. Open this page from its https link.';
+    if (n === 'NotAllowedError' || n === 'SecurityError') return 'Camera permission was blocked. Allow the camera for this site in the browser, then press Start again.';
+    if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'No front camera was found on this device.';
+    if (n === 'NotReadableError' || n === 'AbortError') return 'The camera is busy in another app or tab. Close it there, then press Start again.';
+    return 'The camera could not be started' + (e && e.message ? ' (' + e.message + ')' : '') + '.';
+  }
+  function openCamera() {
+    return navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30, max: 30 } }
+    });
+  }
+  function sizeWrap() {
+    const v = $('#pCam'), wrap = $('#pCamWrap');
+    const ar = v.videoWidth && v.videoHeight ? v.videoWidth / v.videoHeight : 4 / 3;
+    wrap.style.aspectRatio = String(ar);
+    wrap.style.width = 'min(100%, ' + (44 * ar).toFixed(2) + 'vh)';
+  }
+  $('#pCam').addEventListener('loadedmetadata', sizeWrap);
+  $('#pCam').addEventListener('resize', sizeWrap);
+
+  async function grabFrame() {
+    const v = $('#pCam');
+    // In a hidden tab the <video> may stop updating, so take the frame straight from the camera where possible.
+    if (document.hidden && P.capture) {
+      try { const b = await P.capture.grabFrame(); return { src: b, w: b.width, h: b.height, close: () => b.close() }; }
+      catch (e) { /* fall back to the video element */ }
+    }
+    if (v.readyState >= 2 && v.videoWidth) return { src: v, w: v.videoWidth, h: v.videoHeight };
+    return null;
+  }
+
+  // ---------- Main loop ----------
+  async function tick() {
+    if (!P.running || P.busy || !P.lm || P.phase === 'loading') return;
+    P.busy = true;
+    let frame = null;
+    try {
+      frame = await grabFrame();
+      if (!P.running || !frame) return;
+      let lmk = null;
+      try {
+        const t0 = performance.now();
+        const res = P.lm.detect(frame.src);
+        const ms = performance.now() - t0;
+        lmk = (res && res.landmarks && res.landmarks[0]) || null;
+        P.errors = 0;
+        // Some computers run the graphics path in software, which is far slower than the processor path.
+        P.detMs = P.detN ? 0.8 * P.detMs + 0.2 * ms : ms;
+        P.detN++;
+        if (P.delegate === 'GPU' && P.detN >= 6 && P.detMs > 150) {
+          await switchToCPU();
+          return;
+        }
+      } catch (e) {
+        if (P.delegate === 'GPU') { await switchToCPU(); return; }
+        throw e;
+      }
+      update(lmk, frame.w, frame.h, performance.now());
+    } catch (e) {
+      if (++P.errors > 20) endSession('Posture checking stopped after repeated errors' + (e && e.message ? ' (' + e.message + ')' : '') + '.');
+    } finally {
+      if (frame && frame.close) frame.close();
+      P.busy = false;
+    }
+  }
+
+  // The two paths place landmarks slightly differently, so a calibration from one does not fit the other.
+  async function switchToCPU() {
+    const m = await fallbackToCPU();
+    P.lm = m.lm; P.delegate = m.delegate; P.detN = 0;
+    if (P.running && P.phase !== 'loading') {
+      if (P.state === 'bad') P.longest = Math.max(P.longest, (performance.now() - P.badStart) / 1000);
+      P.state = 'calib';
+      startCalibration(performance.now());
+    }
+  }
+
+  function update(lmk, w, h, now) {
+    const dt = P.lastTick ? Math.min(2, (now - P.lastTick) / 1000) : 0;
+    P.lastTick = now;
+    P.frameW = w; P.frameH = h;
+    const f = lmk ? POSTURE.features(lmk, w, h) : { ok: false, why: 'none' };
+    P.feat = f;
+    if (P.phase === 'calibrating') calibrate(f, now);
+    else if (P.phase === 'monitoring') monitor(f, now, dt);
+    renderLive(now);
+  }
+
+  function startCalibration(now) {
+    P.phase = 'calibrating';
+    P.calibStart = now; P.calibFrames = []; P.countdown = CALIB_WAIT;
+    P.smooth = null; P.over = [];
+    P.statusMsg = 'Sit up straight and look at the screen. Calibrating in ' + CALIB_WAIT + '…';
+  }
+
+  function calibrate(f, now) {
+    const el = (now - P.calibStart) / 1000;
+    if (el < CALIB_WAIT) {
+      P.countdown = Math.ceil(CALIB_WAIT - el);
+      P.statusMsg = 'Sit up straight and look at the screen. Calibrating in ' + P.countdown + '…';
+      return;
+    }
+    P.countdown = 0;
+    if (f.ok) { P.calibFrames.push(f); P.statusMsg = 'Hold that posture…'; }
+    else P.statusMsg = WHY[f.why] || WHY.none;
+    if (P.calibFrames.length >= 10 && el >= CALIB_WAIT + CALIB_LEN) {
+      const base = POSTURE.makeBaseline(P.calibFrames.slice(-30));
+      if (base) {
+        P.base = base;
+        P.phase = 'monitoring';
+        P.smooth = null; P.absentSince = null; P.lastTick = now;
+        setState('good', now);
+        P.statusMsg = 'Calibrated. Keep it up.';
+        return;
+      }
+      P.calibFrames = [];
+    }
+  }
+
+  function setState(s, now) {
+    if (P.state === 'bad' && s !== 'bad') P.longest = Math.max(P.longest, (now - P.badStart) / 1000);
+    P.state = s; P.badSince = null; P.goodSince = null;
+    if (s === 'bad') {
+      P.badStart = now; P.warnings++;
+      if (P.sound) beep(now);
+    }
+  }
+
+  function monitor(f, now, dt) {
+    const r = f.ok ? POSTURE.scores(f, P.base, P.level) : null;
+    if (r) {
+      // Smooth over about half a second so single noisy frames do not count.
+      if (!P.smooth || !dt) P.smooth = { ...r.s };
+      else {
+        const a = 1 - Math.exp(-dt / 0.5);
+        for (const k in r.s) P.smooth[k] += a * (r.s[k] - P.smooth[k]);
+      }
+      P.absentSince = null;
+    } else if (P.absentSince == null) P.absentSince = now;
+
+    if (!r && now - P.absentSince >= ABSENT_MS) {
+      if (P.state !== 'absent') setState('absent', now);
+      P.smooth = null; P.over = [];
+      P.statusMsg = WHY[f.why] || WHY.none;
+    } else if (r && P.smooth) {
+      const s = P.smooth;
+      const worst = Math.max(...POSTURE.CHECKS.map(c => s[c.key]));
+      P.over = POSTURE.CHECKS.filter(c => s[c.key] >= 1).map(c => c.key);
+      if (P.state === 'absent') setState('good', now);
+      if (P.state === 'good') {
+        if (worst >= 1) {
+          if (P.badSince == null) P.badSince = now;
+          if (now - P.badSince >= P.delay * 1000) setState('bad', now);
+        } else P.badSince = null;
+      } else if (P.state === 'bad') {
+        // Clear quickly once clearly below the limit; if a check hovers just under it, clear after 2 s.
+        if (worst < 1) {
+          if (P.goodSince == null) P.goodSince = now;
+          if (now - P.goodSince >= (worst < 0.85 ? CLEAR_MS : CLEAR_SLOW_MS)) setState('good', now);
+        } else P.goodSince = null;
+      }
+      P.statusMsg = statusText(now);
+    }
+
+    if (dt > 0) {
+      P.mon += dt;
+      if (P.state === 'good') P.good += dt;
+      else if (P.state === 'bad') { P.bad += dt; for (const k of P.over) P.issues[k] = (P.issues[k] || 0) + dt; }
+      else P.absent += dt;
+      const tl = P.timeline, last = tl[tl.length - 1];
+      if (last && last.s === P.state) last.t1 = P.mon;
+      else tl.push({ s: P.state, t0: last ? last.t1 : 0, t1: P.mon });
+    }
+    if (P.state === 'bad' && P.sound && now - P.lastBeep > BEEP_EVERY) beep(now);
+  }
+
+  function issueList() { return P.over.map(k => CHECK[k].label).join(' · '); }
+  function statusText(now) {
+    if (P.state === 'bad') return P.over.length ? issueList() + '. ' + CHECK[P.over[0]].fix + '.' : 'Better. Hold it there…';
+    if (P.badSince != null) {
+      const left = Math.max(0, Math.ceil(P.delay - (now - P.badSince) / 1000));
+      return issueList() + '. Warning in ' + left + ' s.';
+    }
+    return 'Good posture. Keep it up.';
+  }
+
+  // ---------- Sound ----------
+  let audio = null;
+  function ensureAudio() {
+    try {
+      if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      audio.resume();
+    } catch (e) { audio = null; }
+  }
+  function beep(now) {
+    P.lastBeep = now;
+    if (!audio) return;
+    try {
+      let t = audio.currentTime + 0.02;
+      for (const f of [880, 660]) {
+        const o = audio.createOscillator(), g = audio.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+        o.connect(g); g.connect(audio.destination);
+        o.start(t); o.stop(t + 0.22);
+        t += 0.22;
+      }
+    } catch (e) { /* sound is optional */ }
+  }
+  function setSound(on) {
+    P.sound = on;
+    $('#pSound').checked = on; $('#pSoundLive').checked = on;
+    if (on) { ensureAudio(); P.lastBeep = performance.now(); }
+  }
+  $('#pSoundLive').addEventListener('change', (e) => setSound(e.target.checked));
+
+  // ---------- Rendering the live view ----------
+  function signFor() {
+    if (P.phase !== 'monitoring') {
+      return { state: 'calib', label: P.phase === 'loading' ? 'Starting' : (P.countdown ? 'Get ready' : 'Calibrating'), num: P.countdown ? String(P.countdown) : '…' };
+    }
+    if (P.state === 'bad') return { state: 'bad', label: P.over.length ? CHECK[P.over[0]].fix : 'Fix your posture', num: '' };
+    if (P.state === 'good') return { state: 'good', label: 'Good posture', num: '' };
+    return { state: 'absent', label: "Can't see you", num: '?' };
+  }
+  function paintSign(root, s) {
+    if (!root) return;
+    if (root.dataset.state !== s.state) root.dataset.state = s.state;
+    const lab = root.querySelector('.psign-label');
+    if (lab.textContent !== s.label) lab.textContent = s.label;
+    const txt = root.querySelector('.i-wait text');
+    if (txt.textContent !== s.num) txt.textContent = s.num;
+  }
+
+  function buildChecks() {
+    const ul = $('#pChecks');
+    ul.innerHTML = '';
+    for (const c of POSTURE.CHECKS) {
+      const li = document.createElement('li');
+      li.dataset.key = c.key;
+      li.innerHTML = '<span class="pc-label"></span><span class="pc-meter"><span class="pc-fill"></span><span class="pc-limit"></span></span><span class="pc-state">–</span>';
+      li.querySelector('.pc-label').textContent = c.label;
+      ul.appendChild(li);
+    }
+  }
+
+  function fmtClock(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60;
+    const mm = String(m).padStart(2, '0'), ss = String(s).padStart(2, '0');
+    return h ? h + ':' + mm + ':' + ss : mm + ':' + ss;
+  }
+  function fmtLong(sec) {
+    sec = Math.round(sec);
+    if (sec < 60) return sec + ' s';
+    const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60);
+    return h ? h + ' h ' + String(m).padStart(2, '0') + ' min' : m + ' min';
+  }
+
+  function renderLive(now) {
+    const s = signFor();
+    paintSign($('#pSign'), s);
+    if (P.pip) {
+      try {
+        paintSign(P.pip.document.querySelector('.psign'), s);
+        const iss = P.pip.document.querySelector('.pip-issue');
+        const t = P.phase === 'monitoring' && P.state === 'bad' ? issueList() : '';
+        if (iss.textContent !== t) iss.textContent = t;
+      } catch (e) { /* window closed */ }
+    }
+    if (P.statusMsg !== P.lastStatus) { P.lastStatus = P.statusMsg; $('#pStatus').textContent = P.statusMsg; }
+    $('#pTimer').textContent = fmtClock(P.mon);
+
+    const ul = $('#pChecks');
+    const active = P.phase === 'monitoring' && P.smooth;
+    ul.dataset.idle = active ? 'false' : 'true';
+    for (const li of ul.children) {
+      const k = li.dataset.key, v = active ? Math.max(0, P.smooth[k]) : 0;
+      const over = !!active && v >= 1;
+      li.dataset.over = over ? 'true' : 'false';
+      li.querySelector('.pc-fill').style.width = (Math.min(1.5, v) / 1.5 * 100).toFixed(1) + '%';
+      li.querySelector('.pc-state').textContent = active ? (over ? 'Fix' : 'OK') : '–';
+    }
+
+    const seen = P.good + P.bad;
+    $('#pLiveStats').textContent = P.mon > 0
+      ? 'Upright ' + (seen > 0 ? Math.round(100 * P.good / seen) : 0) + '% · ' + P.warnings + (P.warnings === 1 ? ' warning' : ' warnings') + (P.delegate ? ' · ' + (P.delegate === 'GPU' ? 'graphics chip' : 'processor') : '')
+      : '';
+
+    // Browser tab title doubles as a signal when the page is behind other tabs.
+    let title;
+    if (P.phase !== 'monitoring') title = 'Calibrating posture…';
+    else if (P.state === 'bad') title = Math.floor(now / 1000) % 2 ? '⚠ Fix your posture' : '⚠ ' + (P.over.length ? CHECK[P.over[0]].label : 'Posture');
+    else if (P.state === 'good') title = '✓ Good posture';
+    else title = 'Posture check: out of view';
+    if (document.title !== title) document.title = title;
+
+    if (!document.hidden) drawOverlay();
+  }
+
+  function drawOverlay() {
+    const wrap = $('#pCamWrap'), cv = $('#pOverlay');
+    if (wrap.hidden) return;
+    const W = wrap.clientWidth, H = wrap.clientHeight;
+    if (!W || !H) return;
+    const ctx = prep(cv, W, H);
+    const f = P.feat;
+    if (!f || !f.ok || !P.frameW) return;
+    const cs = getComputedStyle(document.documentElement);
+    const col = P.phase !== 'monitoring' || P.state === 'absent' ? '#FFFFFF'
+      : P.state === 'bad' ? cs.getPropertyValue('--alert').trim() : cs.getPropertyValue('--ok').trim();
+    const sx = W / P.frameW, sy = H / P.frameH;
+    const pt = (p) => [p.x * sx, p.y * sy];
+    const hd = f.ear || f.eye;
+    const line = (a, b, width) => {
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = width + 3;
+      ctx.beginPath(); ctx.moveTo(...pt(a)); ctx.lineTo(...pt(b)); ctx.stroke();
+      ctx.strokeStyle = col; ctx.lineWidth = width;
+      ctx.beginPath(); ctx.moveTo(...pt(a)); ctx.lineTo(...pt(b)); ctx.stroke();
+    };
+    line(f.ls, f.rs, 4);
+    line(hd.a, hd.b, 4);
+    line(f.sm, hd.mid, 3);
+    // Where your head sat at calibration, measured from your shoulders now.
+    const bk = f.ear && P.base && P.base.ear ? P.base.ear : (P.base ? P.base.eye : null);
+    if (P.phase === 'monitoring' && bk) {
+      const ty = (f.sm.y - bk.neck * f.sw) * sy, tx = f.sm.x * sx, half = hd.hw * sx * 0.8;
+      ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath(); ctx.moveTo(tx - half, ty); ctx.lineTo(tx + half, ty); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    for (const p of [f.ls, f.rs, hd.a, hd.b, f.nose]) {
+      const [x, y] = pt(p);
+      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
+    }
+  }
+
+  // ---------- Floating window that stays on top (Chrome and Edge on computers) ----------
+  const pipSupported = 'documentPictureInPicture' in window;
+  function syncPipBtn() {
+    const b = $('#pPip');
+    b.hidden = !pipSupported;
+    b.textContent = P.pip ? 'Close the floating window' : 'Keep on top of other windows';
+  }
+  async function togglePip() {
+    if (P.pip) { closePip(); return; }
+    try {
+      const win = await window.documentPictureInPicture.requestWindow({ width: 240, height: 280 });
+      document.querySelectorAll('link[rel="stylesheet"], style').forEach(n => win.document.head.appendChild(n.cloneNode(true)));
+      win.document.title = 'Posture';
+      win.document.body.className = 'pip-body';
+      const sign = $('#pSign').cloneNode(true);
+      sign.removeAttribute('id');
+      win.document.body.appendChild(sign);
+      const iss = win.document.createElement('p'); iss.className = 'pip-issue'; win.document.body.appendChild(iss);
+      const end = win.document.createElement('button');
+      end.type = 'button'; end.className = 'btn-quiet'; end.textContent = 'End posture check';
+      end.addEventListener('click', () => endSession());
+      win.document.body.appendChild(end);
+      win.addEventListener('pagehide', () => { if (P.pip === win) { P.pip = null; syncPipBtn(); } });
+      P.pip = win;
+      $('#pLiveNote').textContent = 'Drag the floating window to the top-right corner of your screen.';
+      syncPipBtn();
+      renderLive(performance.now());
+    } catch (e) {
+      $('#pLiveNote').textContent = 'The floating window could not be opened' + (e && e.message ? ' (' + e.message + ')' : '') + '.';
+    }
+  }
+  function closePip() {
+    const w = P.pip; P.pip = null;
+    try { if (w) w.close(); } catch (e) {}
+    syncPipBtn();
+  }
+
+  // ---------- Start and end ----------
+  async function requestWake() {
+    try { if (navigator.wakeLock && !document.hidden && P.running) P.wl = await navigator.wakeLock.request('screen'); }
+    catch (e) { P.wl = null; }
+  }
+
+  async function start() {
+    showErr('');
+    if (P.running) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showErr(camErr(null)); return; }
+    freshSession();
+    if (P.sound) ensureAudio();
+    $('#pSoundLive').checked = P.sound;
+    P.running = true; P.phase = 'loading';
+    P.statusMsg = model ? 'Starting the camera…' : 'Starting the camera and loading the pose model. The first time this downloads about 15 MB.';
+    $('#pLiveNote').textContent = '';
+    syncPipBtn();
+    $('#livePosture').hidden = false;
+    document.body.style.overflow = 'hidden';
+    renderLive(performance.now());
+
+    const [c, m] = await Promise.allSettled([openCamera(), getModel()]);
+    if (!P.running) { if (c.status === 'fulfilled') c.value.getTracks().forEach(t => t.stop()); return; }
+    if (c.status === 'rejected' || m.status === 'rejected') {
+      if (c.status === 'fulfilled') c.value.getTracks().forEach(t => t.stop());
+      endSession(c.status === 'rejected' ? camErr(c.reason)
+        : 'The pose model could not be loaded. Check your internet connection and try again.' + (m.reason && m.reason.message ? ' (' + m.reason.message + ')' : ''));
+      return;
+    }
+    P.stream = c.value; P.track = P.stream.getVideoTracks()[0];
+    P.lm = m.value.lm; P.delegate = m.value.delegate;
+    const v = $('#pCam');
+    v.srcObject = P.stream;
+    try { await v.play(); } catch (e) { /* autoplay muted is allowed; frames still arrive */ }
+    sizeWrap();
+    try { P.capture = 'ImageCapture' in window ? new ImageCapture(P.track) : null; } catch (e) { P.capture = null; }
+    P.track.addEventListener('ended', () => { if (P.running) endSession('The camera stopped, so the posture check ended.'); });
+    startCalibration(performance.now());
+    requestWake();
+    startTicker(document.hidden ? TICK_HIDDEN : TICK_VISIBLE);
+  }
+
+  function endSession(errMsg) {
+    if (!P.running) return;
+    const now = performance.now();
+    if (P.phase === 'monitoring' && P.state === 'bad') P.longest = Math.max(P.longest, (now - P.badStart) / 1000);
+    const hadMonitoring = P.mon >= 10;
+    P.running = false; P.phase = 'idle';
+    stopTicker();
+    if (P.stream) P.stream.getTracks().forEach(t => t.stop());
+    $('#pCam').srcObject = null;
+    closePip();
+    try { if (P.wl) P.wl.release(); } catch (e) {}
+    P.wl = null;
+    document.title = TITLE0;
+    $('#livePosture').hidden = true;
+    document.body.style.overflow = '';
+    if (errMsg) showErr(errMsg);
+    if (hadMonitoring) {
+      session = {
+        source: 'live', mon: P.mon, good: P.good, bad: P.bad, absent: P.absent, warnings: P.warnings,
+        longest: P.longest, issues: { ...P.issues }, timeline: P.timeline.slice(), level: P.level, delay: P.delay,
+        label: 'Ended ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      renderSession();
+      if (!errMsg) $('#pReadout').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    } else if (!errMsg) {
+      showErr('Ended before 10 seconds of monitoring, so there is no summary.');
+    }
+  }
+
+  function showErr(msg) { const e = $('#pError'); e.textContent = msg || ''; e.hidden = !msg; }
+
+  $('#pStart').addEventListener('click', start);
+  $('#pEnd').addEventListener('click', () => endSession());
+  $('#pRecal').addEventListener('click', () => {
+    if (!P.running || P.phase === 'loading') return;
+    if (P.state === 'bad') P.longest = Math.max(P.longest, (performance.now() - P.badStart) / 1000);
+    P.state = 'calib';
+    startCalibration(performance.now());
+    renderLive(performance.now());
+  });
+  $('#pPip').addEventListener('click', togglePip);
+  $('#pShowCam').addEventListener('change', (e) => { $('#pCamWrap').hidden = !e.target.checked; });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!P.running) return;
+    if (P.phase !== 'loading') startTicker(document.hidden ? TICK_HIDDEN : TICK_VISIBLE);
+    if (!document.hidden) requestWake();
+  });
+
+  // ---------- Session summary ----------
+  let session = null;
+  function exampleSession() {
+    const segs = [['good', 0, 250], ['bad', 250, 318], ['good', 318, 610], ['absent', 610, 700], ['good', 700, 985], ['bad', 985, 1078], ['good', 1078, 1290], ['bad', 1290, 1335], ['good', 1335, 1500]];
+    const sum = (s) => segs.filter(x => x[0] === s).reduce((a, x) => a + x[2] - x[1], 0);
+    return {
+      source: 'example', mon: 1500, good: sum('good'), bad: sum('bad'), absent: sum('absent'),
+      warnings: segs.filter(x => x[0] === 'bad').length,
+      longest: Math.max(...segs.filter(x => x[0] === 'bad').map(x => x[2] - x[1])),
+      issues: { forward: 128, slouch: 61, down: 17 }, level: 'normal', delay: 3,
+      timeline: segs.map(([s, t0, t1]) => ({ s, t0, t1 })), label: ''
+    };
+  }
+
+  function renderSession() {
+    const S = session;
+    const seen = S.good + S.bad;
+    $('#pUpright').textContent = seen > 0 ? Math.round(100 * S.good / seen) : '--';
+    $('#pSub').textContent = seen > 0 ? 'Share of the time in view that the green sign was showing' : 'You were out of view for the whole session.';
+    $('#pDur').textContent = fmtLong(S.mon);
+    $('#pWarn').textContent = String(S.warnings);
+    const top = Object.entries(S.issues).sort((a, b) => b[1] - a[1])[0];
+    $('#pIssue').textContent = top && top[1] > 0 ? CHECK[top[0]].label : 'None';
+    $('#pLongest').textContent = S.warnings ? fmtLong(S.longest) : 'None';
+    $('#pAbsent').textContent = fmtLong(S.absent);
+    $('#pSettings').textContent = LEVEL_TEXT[S.level] + ', warn after ' + S.delay + ' s';
+    const chip = $('#pChip');
+    if (S.source === 'example') {
+      chip.dataset.kind = 'example'; chip.textContent = 'Example result';
+      $('#pSourceText').textContent = 'A made-up 25-minute session, shown until you finish your first posture check.';
+      $('#pExampleBtn').hidden = true;
+    } else {
+      chip.dataset.kind = 'live'; chip.textContent = 'Your session';
+      $('#pSourceText').textContent = S.label;
+      $('#pExampleBtn').hidden = false;
+    }
+    drawTimeline();
+  }
+  $('#pExampleBtn').addEventListener('click', () => { session = exampleSession(); renderSession(); });
+
+  let tlPlot = null;
+  function drawTimeline() {
+    const S = session, el = $('#pTimeline');
+    if (!S) return;
+    const W = Math.max(260, el.clientWidth), H = 72;
+    const m = { l: 1, r: 1, t: 8, b: 26 }, barH = 30;
+    const ctx = prep(el.querySelector('.base'), W, H);
+    prep(el.querySelector('.overlay'), W, H);
+    const T = tokens();
+    const cs = getComputedStyle(document.documentElement);
+    const COL = { good: cs.getPropertyValue('--good').trim(), bad: cs.getPropertyValue('--bad').trim(), absent: cs.getPropertyValue('--absent').trim() };
+    const dur = Math.max(1, S.mon), pw = W - m.l - m.r;
+    const xs = (t) => m.l + (t / dur) * pw;
+
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(m.l, m.t, pw, barH, 4); else ctx.rect(m.l, m.t, pw, barH);
+    ctx.clip();
+    ctx.fillStyle = COL.absent; ctx.fillRect(m.l, m.t, pw, barH);
+    for (const g of S.timeline) {
+      const x0 = xs(g.t0), x1 = xs(g.t1);
+      ctx.fillStyle = COL[g.s];
+      ctx.fillRect(x0, m.t, Math.max(1, x1 - x0), barH);
+    }
+    ctx.restore();
+
+    const steps = [10, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200];
+    const step = steps.find(s => dur / s <= 6) || 7200;
+    ctx.font = T.mono; ctx.fillStyle = T.ink3; ctx.textBaseline = 'top'; ctx.lineWidth = 1; ctx.strokeStyle = T.rule;
+    for (let t = 0; t <= dur + 1e-6; t += step) {
+      const x = xs(t);
+      ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, m.t + barH + 2); ctx.lineTo(Math.round(x) + 0.5, m.t + barH + 6); ctx.stroke();
+      ctx.textAlign = x < m.l + 16 ? 'left' : (x > W - m.r - 24 ? 'right' : 'center');
+      ctx.fillText(t < 60 ? t + ' s' : (t % 3600 === 0 && t > 0 ? t / 3600 + ' h' : Math.round(t / 60) + ' min'), x, m.t + barH + 9);
+    }
+
+    tlPlot = {
+      W, H, top: m.t, bottom: m.t + barH,
+      hit(x) {
+        if (x < m.l || x > W - m.r) return null;
+        const t = ((x - m.l) / pw) * dur;
+        const g = S.timeline.find(seg => t >= seg.t0 && t <= seg.t1);
+        if (!g) return null;
+        return { px: x, py: m.t + barH / 2, html: '<b>' + fmtClock(g.t0) + '–' + fmtClock(g.t1) + '</b><br>' + STATE_TEXT[g.s] };
+      }
+    };
+  }
+  attachHover('#pTimeline', () => tlPlot);
+  window.FPLUI.redrawPosture = drawTimeline;
+
+  // ---------- Boot ----------
+  buildChecks();
+  syncPipBtn();
+  session = exampleSession();
+  renderSession();
+  let raf = 0;
+  const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawTimeline); };
+  if ('ResizeObserver' in window) new ResizeObserver(redraw).observe($('#pTimeline'));
+  else window.addEventListener('resize', redraw);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
 })();
 </script>
