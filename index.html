@@ -505,7 +505,7 @@ select {
 <body>
 <main class="sheet">
   <header class="masthead">
-    <p class="eyebrow">Phone sensing · version 5</p>
+    <p class="eyebrow">Phone sensing · version 5.1</p>
     <h1>Phone Vitals Lab</h1>
     <p class="lede">Check pulse, breathing, posture, sleep, cough, hearing, vision and movement with the camera, microphone, speaker and motion sensors already in a phone. Readings stay on this device unless you share them.</p>
   </header>
@@ -806,8 +806,14 @@ select {
     <section class="capture" id="pCapture">
       <div class="capture-main">
         <h2>Watch my posture</h2>
-        <p class="capture-lede">Uses the front camera of this phone or laptop. A big sign in the top-right corner flashes while your posture needs fixing and turns green as soon as it is fixed. It keeps checking until you press End or close the tab.</p>
+        <p class="capture-lede">Uses the front camera and, on a phone, the tilt sensor, which tells the page where the camera is pointing. So looking down at a phone held low is caught even when your face looks fine on camera. A big sign in the top-right corner flashes while your posture needs fixing and turns green as soon as it is fixed.</p>
         <div class="field-row">
+          <label class="field" for="pView">Camera
+            <select id="pView">
+              <option value="front" selected>In front of me</option>
+              <option value="side">To my side</option>
+            </select>
+          </label>
           <label class="field" for="pLevel">Sensitivity
             <select id="pLevel">
               <option value="relaxed">Relaxed</option>
@@ -834,12 +840,12 @@ select {
       <div class="howto-wrap">
         <p class="howto-title">Setup</p>
         <ol class="howto">
-          <li><span>Put the camera at about <strong>eye level</strong>, facing you. Prop a phone up rather than holding it.</span></li>
-          <li><span>Sit <strong>50 to 80 cm</strong> away, so your <strong>head and both shoulders</strong> are in view.</span></li>
-          <li><span>When the check starts, <strong>sit up straight</strong> and look at the screen for 5 seconds. That posture becomes your target.</span></li>
-          <li><span>Carry on working. Press <strong>End</strong> when you are done.</span></li>
+          <li><span><strong>Calibrate step 1:</strong> sit up straight, hold or prop the phone <strong>upright at eye level</strong>, 70 to 100 cm away, and look straight ahead. Head, shoulders and ideally your waist should be in view; the page asks the camera for its widest picture.</span></li>
+          <li><span><strong>Step 2, phones:</strong> keep your head level and lower the phone to <strong>chest height</strong>, tilted up at your face. You may glance down with your eyes, but don't bend your neck. This teaches the page the shape of your face.</span></li>
+          <li><span>After that the phone can be <strong>anywhere, even in your hand</strong>. Its tilt sensor works out where the camera points, so looking down at a low phone is caught.</span></li>
+          <li><span>For the best check of a head pushed forward, choose <strong>Camera: To my side</strong> and prop the phone about 1 metre to your left or right, at chest height.</span></li>
         </ol>
-        <p class="footnote">The video is analysed on this device and never uploaded. The pose model (about 15 MB) downloads the first time.</p>
+        <p class="footnote">The video is analysed on this device and never uploaded. The pose model (about 15 MB) downloads the first time. On an iPhone, allow Motion &amp; Orientation when asked.</p>
       </div>
     </section>
 
@@ -888,25 +894,31 @@ select {
       <section>
         <h2>How the page checks posture</h2>
         <ol>
-          <li><strong>Find your pose.</strong> A pose model (Google's MediaPipe Pose Landmarker) locates your nose, eyes, ears and shoulders in the camera image about 5 times a second.</li>
-          <li><strong>Learn your upright posture.</strong> During calibration it records where your head sits relative to your shoulders while you sit up straight.</li>
-          <li><strong>Compare every frame with that target.</strong> Six checks run at once:
+          <li><strong>Find your pose.</strong> A pose model (Google's MediaPipe Pose Landmarker) locates your nose, eyes, ears, shoulders and hips in the camera image about 5 times a second. The camera is asked for its full 4:3 picture at its widest zoom, which shows more of you than the cropped default.</li>
+          <li><strong>Know where the camera points.</strong> The phone's tilt sensor measures how far the camera looks up or down and whether the phone is on a slant. Seeing the ceiling means the camera looks up, and the sensor measures exactly how much. Every picture is first turned so that up is truly up.</li>
+          <li><strong>Head angle against gravity.</strong> When the head bends, the nose drops below the ear line in the picture. That gives the head's angle relative to the camera; adding the camera's own angle gives the head's true angle. So a phone held low, with your face square to it, still counts as looking down. The neck load shown is from a published model of the spine: about 5 kg upright, 12 kg at 15°, 18 kg at 30° and 27 kg at 60°.</li>
+          <li><strong>Two-step calibration.</strong> Step 1, phone at eye level, records your upright posture. Step 2 sees your still-level head from below, which tells the page how far your nose sits in front of your ears, so the head angle fits your face rather than an average one.</li>
+          <li><strong>Front view checks:</strong>
             <ul>
-              <li><strong>Slouching:</strong> your head sinks toward your shoulders.</li>
+              <li><strong>Head bent down:</strong> more than 20° on Normal (15° Strict, 30° Relaxed), whatever the calibration.</li>
               <li><strong>Head pushed forward:</strong> your head looks bigger compared with your shoulders, because it moved toward the camera.</li>
+              <li><strong>Slouching</strong> and <strong>back slumped:</strong> your head sinks toward your shoulders, or your shoulders sink toward your hips, allowing for the camera's angle.</li>
               <li><strong>Too close to the screen:</strong> your shoulders look wider than at calibration.</li>
-              <li><strong>Looking down:</strong> your nose drops below the line of your ears.</li>
-              <li><strong>Head tilted</strong> and <strong>shoulders uneven:</strong> the ear line or shoulder line tilts away from its calibrated angle.</li>
+              <li>The checks that compare proportions in the picture (head forward, slouching, slumped, too close) pause while the phone is tilted more than 10° away from where it was at calibration, because perspective changes them. Head angle and the level checks keep running.</li>
+              <li><strong>Head tilted</strong> and <strong>shoulders uneven:</strong> the ear line or shoulder line tilts, measured against true level.</li>
             </ul>
           </li>
+          <li><strong>Side view checks:</strong> how far your ear sits in front of your shoulder (head pushed forward), the slope from ear to eye (head bent down), and the slope from shoulder to hip (leaning forward). Each is checked both against the calibration and against a fixed limit, so a slouched calibration cannot hide it.</li>
           <li><strong>Warn after a delay.</strong> A problem has to last for the "Warn after" time before the sign turns red, so reaching for a cup does not set it off. Once you fix it, the sign turns green within 0.6 seconds, or within 2 seconds if you are only just inside the limit.</li>
         </ol>
       </section>
       <section>
         <h2>Limits of this version</h2>
         <ul>
-          <li>A single camera sees you from the front, so it judges posture from indirect clues. Treat it as a reminder, not a medical assessment.</li>
-          <li>Recalibrate after moving the camera or changing chairs, because the target depends on where the camera is.</li>
+          <li>This is a reminder, not a medical assessment. The geometry was tested on a simulated person seen from many phone angles, not yet on real people against a clinical measurement.</li>
+          <li>Without a tilt sensor (most laptops) the page assumes the camera faces you level, and compares with the calibration only. Recalibrate after moving it.</li>
+          <li>Without step 2, head angles assume an average face; the error can reach about 10° when the phone is held well below your face.</li>
+          <li>From the front, a head pushed straight forward shows only as your face growing; the side view measures it directly.</li>
           <li>Dim light, hair over the ears and a busy background make the pose less steady.</li>
           <li>On a laptop it keeps checking in a background tab, but you only see the sign while the page is visible. Turn on the sound, or use the floating window in Chrome or Edge.</li>
           <li>On a phone, the camera pauses when you switch apps, so keep the page on screen.</li>
@@ -1458,6 +1470,7 @@ select {
       <span class="live-timer" id="pTimer">00:00</span>
     </div>
     <p class="live-status" id="pStatus" aria-live="polite">Starting the camera…</p>
+    <p class="live-note" id="pTilt"></p>
     <div class="pcam-wrap" id="pCamWrap">
       <video id="pCam" muted playsinline autoplay></video>
       <canvas id="pOverlay" aria-hidden="true"></canvas>
@@ -1467,6 +1480,7 @@ select {
     <div class="live-actions">
       <button type="button" class="btn" id="pEnd">End</button>
       <button type="button" class="btn-quiet" id="pRecal">Recalibrate</button>
+      <button type="button" class="btn-quiet" id="pSkip" hidden>Skip step 2</button>
       <button type="button" class="btn-quiet" id="pPip" hidden>Keep on top of other windows</button>
     </div>
     <div class="ptoggles">
@@ -2079,23 +2093,28 @@ const DSP = (() => {
 // DSP-END
 
 // POSTURE-START
-// Posture from pose landmarks (MediaPipe numbering: 0 nose, 2/5 eyes, 7/8 ears, 11/12 shoulders).
-// Every check compares the current frame with the calibrated upright posture; a score of 1 is the limit.
+// Posture from pose landmarks (MediaPipe numbering: 0 nose, 2/5 eyes, 7/8 ears, 11/12 shoulders, 23/24 hips; odd = person's left).
+// The phone's tilt sensor tells where the camera points, so head angles are measured against gravity, not just against the calibration picture.
 const POSTURE = (() => {
+  // Relative limits are changes from the calibrated upright posture; absolute limits (degrees) hold whatever the calibration.
   const LEVELS = {
-    relaxed: { slouch: 0.22, forward: 0.15, close: 0.25, down: 0.22, headTilt: 14, shoulders: 9 },
-    normal:  { slouch: 0.14, forward: 0.10, close: 0.17, down: 0.15, headTilt: 10, shoulders: 6 },
-    strict:  { slouch: 0.09, forward: 0.07, close: 0.11, down: 0.10, headTilt: 7,  shoulders: 4 }
+    relaxed: { slouch: 0.22, forward: 0.15, close: 0.25, downRel: 0.22, headTilt: 14, shoulders: 9, slump: 0.16, down: 30, fwdAbs: 38, fwdRel: 14, sideDownAbs: 32, sideDownRel: 20, leanAbs: 26, leanRel: 16 },
+    normal:  { slouch: 0.14, forward: 0.10, close: 0.17, downRel: 0.15, headTilt: 10, shoulders: 6,  slump: 0.11, down: 20, fwdAbs: 30, fwdRel: 10, sideDownAbs: 25, sideDownRel: 15, leanAbs: 20, leanRel: 12 },
+    strict:  { slouch: 0.09, forward: 0.07, close: 0.11, downRel: 0.10, headTilt: 7,  shoulders: 4,  slump: 0.08, down: 15, fwdAbs: 24, fwdRel: 7,  sideDownAbs: 20, sideDownRel: 10, leanAbs: 15, leanRel: 8 }
   };
   const CHECKS = [
-    { key: 'slouch',    label: 'Slouching',               fix: 'Sit up tall' },
-    { key: 'forward',   label: 'Head pushed forward',     fix: 'Pull your head back' },
-    { key: 'close',     label: 'Too close to the screen', fix: 'Lean back' },
-    { key: 'down',      label: 'Looking down',            fix: 'Lift your chin' },
-    { key: 'headTilt',  label: 'Head tilted',             fix: 'Level your head' },
-    { key: 'shoulders', label: 'Shoulders uneven',        fix: 'Level your shoulders' }
+    { key: 'down',      label: 'Head bent down',          fix: 'Raise the screen to eye level', modes: ['front', 'side'] },
+    { key: 'forward',   label: 'Head pushed forward',     fix: 'Pull your head back',           modes: ['front', 'side'] },
+    { key: 'slouch',    label: 'Slouching',               fix: 'Sit up tall',                   modes: ['front'] },
+    { key: 'slump',     label: 'Back slumped',            fix: 'Lift your chest',               modes: ['front'] },
+    { key: 'lean',      label: 'Leaning forward',         fix: 'Sit back in the chair',         modes: ['side'] },
+    { key: 'close',     label: 'Too close to the screen', fix: 'Lean back',                     modes: ['front'] },
+    { key: 'headTilt',  label: 'Head tilted',             fix: 'Level your head',               modes: ['front'] },
+    { key: 'shoulders', label: 'Shoulders uneven',        fix: 'Level your shoulders',          modes: ['front'] }
   ];
-  const deg = (r) => r * 180 / Math.PI;
+  const checksFor = (mode) => CHECKS.filter(c => c.modes.includes(mode));
+  const deg = (r) => r * 180 / Math.PI, rad = (d) => d * Math.PI / 180;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const vis = (p) => (p && typeof p.visibility === 'number' ? p.visibility : 1);
   function lineAngle(a, b) {
     let ang = deg(Math.atan2(a.y - b.y, a.x - b.x));
@@ -2104,67 +2123,218 @@ const POSTURE = (() => {
   }
   function angDiff(a, b) { const d = Math.abs(a - b) % 180; return Math.min(d, 180 - d); }
   function median(a) {
-    const s = a.slice().sort((x, y) => x - y), n = s.length;
+    const s = a.filter(v => v != null && isFinite(v)).sort((x, y) => x - y), n = s.length;
     return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : NaN;
   }
 
-  function features(lm, w, h) {
+  // ---------- Where the camera points ----------
+  // up: world-up as a unit vector in the phone's own axes (x to the right edge, y to the top edge, z out of the screen).
+  // screenAngle: screen.orientation.angle. Returns how far the front camera looks up (elev) and how far the picture is turned (roll).
+  function cameraPose(up, screenAngle) {
+    if (!up) return null;
+    const a = rad(screenAngle || 0);
+    const dUp = up[0] * Math.sin(a) + up[1] * Math.cos(a);
+    const dRight = up[0] * Math.cos(a) - up[1] * Math.sin(a);
+    const elev = deg(Math.asin(clamp(up[2], -1, 1)));
+    // The front camera's picture is a mirror of the screen's left-right, so its x axis runs against the screen's.
+    let roll = deg(Math.atan2(-dRight, dUp));
+    if (Math.abs(elev) > 75) roll = null;   // camera pointing at ceiling or floor: the turn is meaningless
+    return { elev, roll };
+  }
+  // Up from the deviceorientation angles (degrees).
+  function upFromAngles(beta, gamma) {
+    const b = rad(beta), g = rad(gamma);
+    return [-Math.cos(b) * Math.sin(g), Math.sin(b), Math.cos(b) * Math.cos(g)];
+  }
+  // Rough neck load from head bend (Hansraj 2014): 0° about 5 kg, 15° 12, 30° 18, 45° 22, 60° 27.
+  const LOAD = [[0, 5.4], [15, 12.2], [30, 18.1], [45, 22.2], [60, 27.2]];
+  function neckLoad(phi) {
+    const p = clamp(phi, 0, 60);
+    for (let i = 1; i < LOAD.length; i++) if (p <= LOAD[i][0]) { const [a, va] = LOAD[i - 1], [b, vb] = LOAD[i]; return va + (vb - va) * (p - a) / (b - a); }
+    return LOAD[LOAD.length - 1][1];
+  }
+
+  // ---------- Head pitch from the front ----------
+  // Seen from the front, the nose drops below the ear line as the head bends: offset/ear width = K·sin(p) + c·cos(p),
+  // where K is how far the nose sits in front of the ears (about 0.77 of the ear-to-ear width; 0.4 for the eyes) and
+  // c is the person's own offset, learned at calibration.
+  const KHEAD = { ear: 0.77, eye: 0.40 };
+  function relPitch(down, c, K) {
+    const R = Math.hypot(K, c);
+    return deg(Math.asin(clamp(down / R, -1, 1)) - Math.atan2(c, K));
+  }
+  function learnC(down, pDeg, K) { const p = rad(pDeg); return (down - K * Math.sin(p)) / Math.cos(p); }
+  // Close up, the nose is nearer the camera than the ears, so its offset looks bigger. Undo that, given a guess of the pitch.
+  // q: ear width over focal length, which says how close the face is.
+  function flatDown(h, K, pDeg) {
+    const m = 1 / Math.max(0.5, 1 - K * Math.cos(rad(pDeg)) * h.q);
+    return h.down / m;
+  }
+
+  // ---------- One frame ----------
+  // cam: { elev, roll } from the tilt sensor, or null. f: focal length in pixels (rough).
+  function features(lm, w, h, cam, mode, f) {
     if (!lm || lm.length < 13) return { ok: false, why: 'none' };
-    const P = (i) => ({ x: lm[i].x * w, y: lm[i].y * h, v: vis(lm[i]) });
+    mode = mode || 'front';
+    const P = (i) => (lm[i] ? { x: lm[i].x * w, y: lm[i].y * h, v: vis(lm[i]) } : { x: NaN, y: NaN, v: 0 });
     const inside = (p) => p.x > -0.02 * w && p.x < 1.02 * w && p.y > -0.02 * h && p.y < 1.02 * h;
+    const roll = cam && cam.roll != null && Math.abs(cam.roll) <= 45 ? cam.roll : 0;
+    const elev = cam && cam.elev != null ? cam.elev : null;
+    const fl = f || 0.65 * Math.max(w, h);
+    // Turn the picture back so that up is up, then measure.
+    const ca = Math.cos(rad(-roll)), sa = Math.sin(rad(-roll)), cx = w / 2, cy = h / 2;
+    const D = (p) => ({ x: cx + (p.x - cx) * ca - (p.y - cy) * sa, y: cy + (p.x - cx) * sa + (p.y - cy) * ca, v: p.v });
+    const sight = (y) => deg(Math.atan((cy - y) / fl));            // how far above the camera's centre line a point is seen
+    const squash = (y) => (elev == null ? 1 : Math.max(0.5, Math.cos(rad(elev + sight(y)))));   // vertical shortening from a tilted camera
+    const side = Math.max(w, h);
+    const base = { ok: true, mode, w, h, elev, roll: cam ? cam.roll : null, tilt: !!cam };
+
+    if (mode === 'side') {
+      const score = (i) => (vis(lm[i]) || 0);
+      const leftVis = score(7) + score(11) + 0.5 * score(23), rightVis = score(8) + score(12) + 0.5 * score(24);
+      const L = leftVis >= rightVis;
+      const ear = P(L ? 7 : 8), sh = P(L ? 11 : 12), hip = P(L ? 23 : 24), eye = P(L ? 2 : 5), nose = P(0);
+      if (sh.v < 0.5 || !inside(sh)) return { ok: false, why: 'shoulders' };
+      if (ear.v < 0.5 || !inside(ear) || nose.v < 0.3) return { ok: false, why: 'face' };
+      const span = Math.hypot(ear.x - sh.x, ear.y - sh.y);
+      if (span < 0.06 * side) return { ok: false, why: 'far' };
+      const e = D(ear), s = D(sh), n = D(nose);
+      const dir = Math.sign(n.x - e.x) || 1;                          // which way the person faces in the picture
+      const k = squash((e.y + s.y) / 2);
+      const fwd = deg(Math.atan2(dir * (e.x - s.x), (s.y - e.y) / k));
+      let down = null, lean = null;
+      if (eye.v >= 0.5 && inside(eye)) { const y = D(eye); down = deg(Math.atan2((y.y - e.y) / k, dir * (y.x - e.x))); }
+      if (hip.v >= 0.5 && inside(hip)) { const hp = D(hip), kh = squash((s.y + hp.y) / 2); lean = deg(Math.atan2(dir * (s.x - hp.x), (hp.y - s.y) / kh)); }
+      return Object.assign(base, { scale: span / side, fwd, down, lean, raw: { ear, sh, hip: hip.v >= 0.5 ? hip : null, eye: eye.v >= 0.5 ? eye : null, nose } });
+    }
+
     const ls = P(11), rs = P(12), nose = P(0);
     if (ls.v < 0.5 || rs.v < 0.5 || !inside(ls) || !inside(rs)) return { ok: false, why: 'shoulders' };
-    const side = Math.max(w, h);
     const sw = Math.hypot(ls.x - rs.x, ls.y - rs.y);
     if (sw < 0.1 * side) return { ok: false, why: 'far' };
     if (nose.v < 0.5 || !inside(nose)) return { ok: false, why: 'face' };
     const sm = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 };
-    const head = (a, b) => {
+    const dls = D(ls), drs = D(rs), dn = D(nose), dsm = D(sm);
+    const head = (a, b, kind) => {
       if (a.v < 0.5 || b.v < 0.5) return null;
       const hw = Math.hypot(a.x - b.x, a.y - b.y);
       if (!(hw > 0.06 * sw)) return null;
       const m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-      return { neck: (sm.y - m.y) / sw, ratio: hw / sw, tilt: lineAngle(a, b), down: (nose.y - m.y) / hw, mid: m, a, b, hw };
+      const da = D(a), db = D(b), dm = D(m);
+      return {
+        kind, a, b, mid: m, hw,
+        neck: (dsm.y - dm.y) / sw / squash((dsm.y + dm.y) / 2),
+        ratio: hw / sw,
+        tilt: lineAngle(da, db),
+        down: (dn.y - dm.y) / hw,
+        sight: sight(dm.y),
+        q: hw / fl
+      };
     };
-    const ear = head(P(7), P(8)), eye = head(P(2), P(5));
+    const ear = head(P(7), P(8), 'ear'), eye = head(P(2), P(5), 'eye');
     if (!ear && !eye) return { ok: false, why: 'face' };
-    return { ok: true, scale: sw / side, sTilt: lineAngle(ls, rs), sw, sm, ls, rs, nose, ear, eye };
+    const lh = P(23), rh = P(24);
+    let torso = null;
+    if (lh.v >= 0.5 && rh.v >= 0.5 && inside(lh) && inside(rh)) {
+      const hm = D({ x: (lh.x + rh.x) / 2, y: (lh.y + rh.y) / 2, v: 1 });
+      torso = (hm.y - dsm.y) / sw / squash((hm.y + dsm.y) / 2);
+    }
+    return Object.assign(base, { scale: sw / side, sTilt: lineAngle(dls, drs), sw, sm, ls, rs, nose, ear, eye, torso });
   }
 
-  function makeBaseline(list) {
-    const ok = list.filter(f => f && f.ok);
+  // Head bend against gravity (degrees, positive = chin down), front view. Needs the tilt sensor and a calibration.
+  function headPitch(f, b) {
+    if (!f.ok || f.mode !== 'front' || f.elev == null || !b) return null;
+    const kind = f.ear && b.ear && b.ear.c != null ? 'ear' : (f.eye && b.eye && b.eye.c != null ? 'eye' : null);
+    if (!kind) return null;
+    const h = f[kind], K = b[kind].K || KHEAD[kind], c = b[kind].c;
+    let p = relPitch(h.down, c, K);
+    for (let i = 0; i < 3; i++) p = relPitch(flatDown(h, K, p), c, K);
+    return f.elev + h.sight + p;
+  }
+
+  // Calibration: the person sits upright, head level, the phone upright at eye level.
+  // low (optional, front view with a tilt sensor): the head stays level while the phone is lowered and pointed up at the face.
+  // Seeing the same level head from a known lower angle tells how far this person's nose sits in front of the ears.
+  function makeBaseline(list, mode, low) {
+    const ok = list.filter(f => f && f.ok && f.mode === (mode || 'front'));
     if (ok.length < 8) return null;
+    const med = (fn) => median(ok.map(fn));
+    const base = { mode: mode || 'front', n: ok.length, scale: med(f => f.scale), elev: med(f => f.elev), tilt: ok.every(f => f.tilt) };
+    if (base.mode === 'side') {
+      Object.assign(base, { fwd: med(f => f.fwd), down: med(f => f.down), lean: med(f => f.lean) });
+      return isFinite(base.fwd) ? base : null;
+    }
     const part = (k) => {
       const xs = ok.filter(f => f[k]);
       if (xs.length < Math.max(6, 0.6 * ok.length)) return null;
+      // The head is taken as level at calibration, so whatever offset the nose shows then is this person's own.
+      const cs = xs.filter(f => f.elev != null).map(f => { const p = -(f.elev + f[k].sight); return learnC(flatDown(f[k], KHEAD[k], p), p, KHEAD[k]); });
       return {
         neck: median(xs.map(f => f[k].neck)), ratio: median(xs.map(f => f[k].ratio)),
-        tilt: median(xs.map(f => f[k].tilt)), down: median(xs.map(f => f[k].down))
+        tilt: median(xs.map(f => f[k].tilt)), down: median(xs.map(f => f[k].down)),
+        c: cs.length >= Math.max(6, 0.6 * xs.length) ? median(cs) : null
       };
     };
-    const base = { scale: median(ok.map(f => f.scale)), sTilt: median(ok.map(f => f.sTilt)), ear: part('ear'), eye: part('eye'), n: ok.length };
-    return base.ear || base.eye ? base : null;
+    Object.assign(base, { sTilt: med(f => f.sTilt), torso: med(f => f.torso), ear: part('ear'), eye: part('eye') });
+    if (!(base.ear || base.eye)) return null;
+    const lows = (low || []).filter(f => f && f.ok && f.mode === 'front' && f.elev != null);
+    for (const k of ['ear', 'eye']) {
+      const b = base[k];
+      if (!b || b.c == null) continue;
+      const xs = lows.filter(f => f[k] && f.elev + f[k].sight >= 15);
+      if (xs.length < 6) continue;
+      const K0 = KHEAD[k], calFrames = ok.filter(f => f[k] && f.elev != null);
+      let K = K0, c = b.c;
+      for (let it = 0; it < 4; it++) {
+        // The level head is seen from below by (elev + sight) degrees, so its pitch relative to the camera is minus that.
+        K = median(xs.map(f => { const p = -(f.elev + f[k].sight); return (flatDown(f[k], K, p) - c * Math.cos(rad(p))) / Math.sin(rad(p)); }));
+        K = clamp(isFinite(K) ? K : K0, 0.5 * K0, 1.6 * K0);
+        c = median(calFrames.map(f => { const p = -(f.elev + f[k].sight); return learnC(flatDown(f[k], K, p), p, K); }));
+      }
+      b.K = K; b.c = c; b.Kn = xs.length;
+    }
+    return base;
   }
 
-  function scores(f, base, level) {
-    const T = LEVELS[level] || LEVELS.normal;
+  // Scores: 1 is the limit; NaN means the check cannot run right now. ctx.moved: the phone is not where it was at calibration.
+  function scores(f, base, level, ctx) {
+    const T = LEVELS[level] || LEVELS.normal, moved = !!(ctx && ctx.moved);
+    if (!f.ok || !base || f.mode !== base.mode) return null;
+    if (f.mode === 'side') {
+      const both = (a, b) => (a != null && b != null && isFinite(b));
+      return {
+        kind: 'side',
+        info: { fwd: f.fwd, downRel: f.down != null && isFinite(base.down) ? f.down - base.down : null, leanRel: f.lean != null && isFinite(base.lean) ? f.lean - base.lean : null },
+        s: {
+          forward: Math.max(f.fwd / T.fwdAbs, (f.fwd - base.fwd) / T.fwdRel),
+          down: both(f.down, base.down) ? Math.max(f.down / T.sideDownAbs, (f.down - base.down) / T.sideDownRel) : NaN,
+          lean: both(f.lean, base.lean) ? Math.max(f.lean / T.leanAbs, (f.lean - base.lean) / T.leanRel) : NaN
+        }
+      };
+    }
     const kind = f.ear && base.ear ? 'ear' : (f.eye && base.eye ? 'eye' : null);
     if (!kind) return null;
     const c = f[kind], b = base[kind];
+    const phi = headPitch(f, base);
+    // Proportions in the picture (head size, neck length, distance) change with perspective when the camera moves,
+    // so they are only compared while the phone is where it was at calibration. Angles against gravity always work.
     return {
       kind,
+      info: { phi, load: phi == null ? null : neckLoad(phi) },
       s: {
-        slouch: ((b.neck - c.neck) / Math.max(0.2, Math.abs(b.neck))) / T.slouch,
-        forward: (c.ratio / b.ratio - 1) / T.forward,
-        close: (f.scale / base.scale - 1) / T.close,
-        down: (c.down - b.down) / T.down,
+        down: phi != null ? Math.max(0, phi) / T.down : (c.down - b.down) / T.downRel,
+        forward: moved ? NaN : (c.ratio / b.ratio - 1) / T.forward,
+        slouch: moved ? NaN : ((b.neck - c.neck) / Math.max(0.2, Math.abs(b.neck))) / T.slouch,
+        slump: !moved && f.torso != null && isFinite(base.torso) ? ((base.torso - f.torso) / base.torso) / T.slump : NaN,
+        close: moved ? NaN : (f.scale / base.scale - 1) / T.close,
         headTilt: angDiff(c.tilt, b.tilt) / T.headTilt,
         shoulders: angDiff(f.sTilt, base.sTilt) / T.shoulders
       }
     };
   }
 
-  return { LEVELS, CHECKS, features, makeBaseline, scores, median };
+  return { LEVELS, CHECKS, checksFor, cameraPose, upFromAngles, neckLoad, relPitch, features, headPitch, makeBaseline, scores, median };
 })();
 // POSTURE-END
 
@@ -3654,6 +3824,8 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
       stream: null, track: null, capture: null, lm: null, delegate: '', busy: false, errors: 0, detMs: 0, detN: 0,
       level: $('#pLevel').value, delay: +$('#pDelay').value, sound: $('#pSound').checked,
       calibStart: 0, calibFrames: [], countdown: 0, base: null, smooth: null, lastTick: 0,
+      mode: $('#pView').value, cam: null, moving: false, info: null, phiShow: null, moved: false, checks: [],
+      calStep: 'level', calibFirst: 0, lowFrames: [], lowStart: 0, wide: false,
       state: 'calib', badSince: null, goodSince: null, absentSince: null, badStart: 0, lastBeep: 0,
       mon: 0, good: 0, bad: 0, absent: 0, warnings: 0, longest: 0, issues: {}, timeline: [],
       over: [], feat: null, frameW: 0, frameH: 0, statusMsg: '', lastStatus: '', wl: null, pip: null
@@ -3673,9 +3845,79 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   function openCamera() {
     return navigator.mediaDevices.getUserMedia({
       audio: false,
-      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30, max: 30 } }
+      // The full 4:3 picture: many phones crop the front camera to 16:9 unless asked, which cuts off shoulders and hips.
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 }, aspectRatio: { ideal: 4 / 3 }, frameRate: { ideal: 30, max: 30 } }
     });
   }
+  // Zoom out as far as the camera allows.
+  async function widen(track) {
+    try {
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (caps.zoom && typeof caps.zoom.min === 'number') { await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }); return true; }
+    } catch (e) { /* not supported */ }
+    return false;
+  }
+
+  // ---------- Where the phone points ----------
+  const TILT = { up: null, t: 0, src: '', hist: [], on: false, sign: 1, mot: null, seen: false };
+  const norm3 = (v) => { const m = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / m, v[1] / m, v[2] / m]; };
+  function feedUp(v, src) {
+    const now = performance.now();
+    if (TILT.src === 'ori' && src === 'mot' && now - TILT.t < 1000) return;   // the orientation sensor is preferred
+    TILT.up = TILT.up && now - TILT.t < 1000 ? norm3(TILT.up.map((x, i) => 0.75 * x + 0.25 * v[i])) : v;
+    TILT.t = now; TILT.src = src; TILT.seen = true;
+    TILT.hist.push([now, TILT.up]);
+    while (TILT.hist.length && now - TILT.hist[0][0] > 1500) TILT.hist.shift();
+  }
+  function onOri(e) {
+    if (e.beta == null || e.gamma == null) return;
+    const u = POSTURE.upFromAngles(e.beta, e.gamma);
+    // Some browsers report the motion sensor with the opposite sign; learn it from the orientation sensor.
+    if (TILT.mot) TILT.sign = TILT.mot[0] * u[0] + TILT.mot[1] * u[1] + TILT.mot[2] * u[2] < -0.5 ? -1 : 1;
+    feedUp(u, 'ori');
+  }
+  function onMot(e) {
+    const a = e.accelerationIncludingGravity;
+    if (!a || a.x == null) return;
+    const m = Math.hypot(a.x, a.y, a.z);
+    if (m < 6 || m > 14) return;                          // being shaken: not a clean reading of gravity
+    TILT.mot = [a.x / m, a.y / m, a.z / m];
+    feedUp(TILT.mot.map((x) => x * TILT.sign), 'mot');
+  }
+  function askSensors() {
+    const asks = [];
+    for (const E of [window.DeviceOrientationEvent, window.DeviceMotionEvent]) {
+      if (E && typeof E.requestPermission === 'function') asks.push(E.requestPermission().catch(() => 'denied'));
+    }
+    return Promise.all(asks);
+  }
+  function tiltOn() {
+    if (TILT.on) return;
+    Object.assign(TILT, { on: true, up: null, hist: [], src: '', seen: false });
+    window.addEventListener('deviceorientation', onOri);
+    window.addEventListener('devicemotion', onMot);
+  }
+  function tiltOff() {
+    TILT.on = false;
+    window.removeEventListener('deviceorientation', onOri);
+    window.removeEventListener('devicemotion', onMot);
+  }
+  function camNow() {
+    if (!TILT.up || performance.now() - TILT.t > 1500) return null;
+    const so = screen.orientation;
+    const angle = so && typeof so.angle === 'number' ? so.angle : (window.orientation || 0);
+    return POSTURE.cameraPose(TILT.up, angle);
+  }
+  function phoneMoving() {
+    const h = TILT.hist;
+    if (h.length < 3) return false;
+    const a = h[0][1];
+    let mx = 0;
+    for (const [, u] of h) mx = Math.max(mx, Math.acos(Math.min(1, a[0] * u[0] + a[1] * u[1] + a[2] * u[2])));
+    return mx * 180 / Math.PI > 6;
+  }
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  const focal = (w, h) => (coarse ? 0.65 : 0.8) * Math.max(w, h);   // rough: phone front cameras are wider than laptop webcams
   function sizeWrap() {
     const v = $('#pCam'), wrap = $('#pCamWrap');
     const ar = v.videoWidth && v.videoHeight ? v.videoWidth / v.videoHeight : 4 / 3;
@@ -3746,43 +3988,81 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     const dt = P.lastTick ? Math.min(2, (now - P.lastTick) / 1000) : 0;
     P.lastTick = now;
     P.frameW = w; P.frameH = h;
-    const f = lmk ? POSTURE.features(lmk, w, h) : { ok: false, why: 'none' };
+    P.cam = camNow();
+    P.moving = phoneMoving();
+    const f = lmk ? POSTURE.features(lmk, w, h, P.cam, P.mode, focal(w, h)) : { ok: false, why: 'none' };
     P.feat = f;
     if (P.phase === 'calibrating') calibrate(f, now);
     else if (P.phase === 'monitoring') monitor(f, now, dt);
     renderLive(now);
   }
 
+  const whyText = (f) => (P.mode === 'side' && f.why === 'face' ? 'Sit side-on to the camera so one ear and shoulder are in view.' : WHY[f.why] || WHY.none);
+  const calibIntro = () => (P.mode === 'side' ? 'Sit up straight and look straight ahead.' : 'Sit up straight and look straight ahead at the screen.');
+  const LOW_MSG = 'Step 2 of 2: keep your head level. Lower the phone to chest height and tilt it up at your face. Glance with your eyes only; don\'t bend your neck.';
   function startCalibration(now) {
-    P.phase = 'calibrating';
-    P.calibStart = now; P.calibFrames = []; P.countdown = CALIB_WAIT;
-    P.smooth = null; P.over = [];
-    P.statusMsg = 'Sit up straight and look at the screen. Calibrating in ' + CALIB_WAIT + '…';
+    P.phase = 'calibrating'; P.calStep = 'level';
+    P.calibStart = now; P.calibFrames = []; P.lowFrames = []; P.countdown = CALIB_WAIT;
+    P.smooth = null; P.over = []; P.info = null; P.phiShow = null;
+    $('#pSkip').hidden = true;
+    P.statusMsg = calibIntro() + ' Calibrating in ' + CALIB_WAIT + '…';
   }
-
+  // Calibration needs the phone held still, upright and straight, so that "level" really is level.
+  function phoneProblem() {
+    const c = P.cam;
+    if (!c) return '';
+    if (P.moving) return 'Hold the phone still.';
+    const lim = P.mode === 'side' ? 15 : 12;
+    if (Math.abs(c.elev) > lim) return (P.mode === 'side' ? 'Prop the phone upright at chest height, to your side.' : 'Hold the phone upright at eye level.') + ' The camera is tilted ' + (c.elev > 0 ? 'up ' : 'down ') + Math.round(Math.abs(c.elev)) + '°.';
+    if (c.roll != null && Math.abs(c.roll) > 15) return 'Hold the phone straight, not on a slant.';
+    return '';
+  }
   function calibrate(f, now) {
-    const el = (now - P.calibStart) / 1000;
+    if (P.calStep === 'low') { calibrateLow(f, now); return; }
+    const el = (now - P.calibStart) / 1000, issue = phoneProblem();
     if (el < CALIB_WAIT) {
       P.countdown = Math.ceil(CALIB_WAIT - el);
-      P.statusMsg = 'Sit up straight and look at the screen. Calibrating in ' + P.countdown + '…';
+      P.statusMsg = (issue || calibIntro()) + ' Calibrating in ' + P.countdown + '…';
       return;
     }
     P.countdown = 0;
-    if (f.ok) { P.calibFrames.push(f); P.statusMsg = 'Hold that posture…'; }
-    else P.statusMsg = WHY[f.why] || WHY.none;
-    if (P.calibFrames.length >= 10 && el >= CALIB_WAIT + CALIB_LEN) {
-      const base = POSTURE.makeBaseline(P.calibFrames.slice(-30));
-      if (base) {
-        P.base = base;
-        P.phase = 'monitoring';
-        P.smooth = null; P.absentSince = null; P.lastTick = now;
-        setState('good', now);
-        P.statusMsg = 'Calibrated. Keep it up.';
+    if (issue) { P.statusMsg = issue; P.calibFrames = []; return; }
+    if (f.ok) { if (!P.calibFrames.length) P.calibFirst = now; P.calibFrames.push(f); P.statusMsg = 'Hold that posture…'; }
+    else P.statusMsg = whyText(f);
+    if (P.calibFrames.length >= 10 && (now - P.calibFirst) / 1000 >= CALIB_LEN) {
+      // With a tilt sensor and a front view, a second look from below learns the shape of this face.
+      if (P.mode === 'front' && P.cam && P.calibFrames.every((x) => x.tilt)) {
+        P.calStep = 'low'; P.lowStart = now; P.lowFrames = [];
+        $('#pSkip').hidden = false;
+        if (P.sound) beep(now);
+        P.statusMsg = LOW_MSG;
         return;
       }
-      P.calibFrames = [];
+      finishCalibration(now);
     }
   }
+  function calibrateLow(f, now) {
+    const h = f.ok ? (f.ear || f.eye) : null;
+    const below = P.cam && h ? P.cam.elev + h.sight : null;   // how far below the face the camera now is
+    if (below != null && below >= 18 && !P.moving) { P.lowFrames.push(f); P.statusMsg = 'Hold it there, head level…'; }
+    else if (!f.ok) P.statusMsg = whyText(f);
+    else P.statusMsg = LOW_MSG + (below != null ? ' Now ' + Math.max(0, Math.round(below)) + '° below, need 18°.' : '');
+    if (P.lowFrames.length >= 12 || (now - P.lowStart) / 1000 > 30) finishCalibration(now);
+  }
+  function finishCalibration(now) {
+    $('#pSkip').hidden = true;
+    const low = P.lowFrames.length >= 6 ? P.lowFrames.slice(-20) : null;
+    const base = POSTURE.makeBaseline(P.calibFrames.slice(-30), P.mode, low);
+    if (!base) { startCalibration(now); P.statusMsg = 'Calibration did not work. ' + calibIntro(); return; }
+    P.base = base;
+    P.phase = 'monitoring';
+    P.smooth = null; P.absentSince = null; P.lastTick = now;
+    setState('good', now);
+    if (P.sound) beep(now);
+    const learned = (base.ear && base.ear.Kn) || (base.eye && base.eye.Kn);
+    P.statusMsg = 'Calibrated' + (learned ? ' to your face' : '') + '. ' + (P.cam ? 'The phone can go anywhere now.' : 'Keep the camera where it is.');
+  }
+  $('#pSkip').addEventListener('click', () => { if (P.running && P.phase === 'calibrating' && P.calStep === 'low') finishCalibration(performance.now()); });
 
   function setState(s, now) {
     if (P.state === 'bad' && s !== 'bad') P.longest = Math.max(P.longest, (now - P.badStart) / 1000);
@@ -3794,25 +4074,34 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   }
 
   function monitor(f, now, dt) {
-    const r = f.ok ? POSTURE.scores(f, P.base, P.level) : null;
+    // The phone counts as moved when it tilts away from where it was at calibration, or is being moved now.
+    P.moved = P.mode === 'front' && isFinite(P.base.elev) && (!P.cam || Math.abs(P.cam.elev - P.base.elev) > 10 || P.moving);
+    const r = f.ok ? POSTURE.scores(f, P.base, P.level, { moved: P.moved }) : null;
     if (r) {
-      // Smooth over about half a second so single noisy frames do not count.
-      if (!P.smooth || !dt) P.smooth = { ...r.s };
-      else {
-        const a = 1 - Math.exp(-dt / 0.5);
-        for (const k in r.s) P.smooth[k] += a * (r.s[k] - P.smooth[k]);
+      // Smooth over about half a second so single noisy frames do not count. NaN means the check is paused.
+      const a = !P.smooth || !dt ? 1 : 1 - Math.exp(-dt / 0.5);
+      if (!P.smooth) P.smooth = {};
+      for (const k in r.s) {
+        const v = r.s[k];
+        if (!isFinite(v)) P.smooth[k] = NaN;
+        else if (!isFinite(P.smooth[k])) P.smooth[k] = v;
+        else P.smooth[k] += a * (v - P.smooth[k]);
       }
+      P.info = r.info;
+      const phi = r.info && r.info.phi;
+      P.phiShow = phi == null ? null : (P.phiShow == null ? phi : P.phiShow + a * (phi - P.phiShow));
       P.absentSince = null;
     } else if (P.absentSince == null) P.absentSince = now;
 
     if (!r && now - P.absentSince >= ABSENT_MS) {
       if (P.state !== 'absent') setState('absent', now);
       P.smooth = null; P.over = [];
-      P.statusMsg = WHY[f.why] || WHY.none;
+      P.statusMsg = whyText(f);
     } else if (r && P.smooth) {
       const s = P.smooth;
-      const worst = Math.max(...POSTURE.CHECKS.map(c => s[c.key]));
-      P.over = POSTURE.CHECKS.filter(c => s[c.key] >= 1).map(c => c.key);
+      const live = P.checks.filter(c => isFinite(s[c.key]));
+      const worst = live.length ? Math.max(...live.map(c => s[c.key])) : 0;
+      P.over = live.filter(c => s[c.key] >= 1).map(c => c.key);
       if (P.state === 'absent') setState('good', now);
       if (P.state === 'good') {
         if (worst >= 1) {
@@ -3886,7 +4175,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   // ---------- Rendering the live view ----------
   function signFor() {
     if (P.phase !== 'monitoring') {
-      return { state: 'calib', label: P.phase === 'loading' ? 'Starting' : (P.countdown ? 'Get ready' : 'Calibrating'), num: P.countdown ? String(P.countdown) : '…' };
+      return { state: 'calib', label: P.phase === 'loading' ? 'Starting' : (P.countdown ? 'Get ready' : (P.calStep === 'low' ? 'Step 2' : 'Calibrating')), num: P.countdown ? String(P.countdown) : (P.calStep === 'low' ? '2' : '…') };
     }
     if (P.state === 'bad') return { state: 'bad', label: P.over.length ? CHECK[P.over[0]].fix : 'Fix your posture', num: '' };
     if (P.state === 'good') return { state: 'good', label: 'Good posture', num: '' };
@@ -3901,16 +4190,34 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     if (txt.textContent !== s.num) txt.textContent = s.num;
   }
 
-  function buildChecks() {
+  function buildChecks(mode) {
     const ul = $('#pChecks');
     ul.innerHTML = '';
-    for (const c of POSTURE.CHECKS) {
+    for (const c of POSTURE.checksFor(mode || 'front')) {
       const li = document.createElement('li');
       li.dataset.key = c.key;
       li.innerHTML = '<span class="pc-label"></span><span class="pc-meter"><span class="pc-fill"></span><span class="pc-limit"></span></span><span class="pc-state">–</span>';
       li.querySelector('.pc-label').textContent = c.label;
       ul.appendChild(li);
     }
+  }
+
+  function tiltText() {
+    if (!P.running || P.phase === 'loading') return '';
+    const c = P.cam, parts = [];
+    if (c) parts.push(Math.abs(c.elev) <= 8 ? 'Phone upright' : 'Camera looking ' + (c.elev > 0 ? 'up ' : 'down ') + Math.round(Math.abs(c.elev)) + '°' + (P.mode === 'front' && c.elev > 20 ? ', phone below your face' : ''));
+    else parts.push(TILT.seen ? 'Tilt sensor paused' : 'No tilt sensor: keep the camera level, facing you');
+    if (P.phase === 'monitoring' && P.info) {
+      if (P.mode === 'front' && P.phiShow != null) parts.push('Head bent ' + Math.max(0, Math.round(P.phiShow)) + '°, neck load about ' + Math.round(POSTURE.neckLoad(P.phiShow)) + ' kg');
+      if (P.mode === 'side') {
+        parts.push('Ear ' + Math.round(P.info.fwd) + '° ahead of shoulder');
+        if (P.info.downRel != null) parts.push('head ' + Math.round(Math.abs(P.info.downRel)) + '° ' + (P.info.downRel >= 0 ? 'lower' : 'higher') + ' than calibrated');
+        if (P.info.leanRel != null) parts.push('trunk ' + Math.round(Math.abs(P.info.leanRel)) + '° ' + (P.info.leanRel >= 0 ? 'forward of' : 'behind') + ' calibrated');
+      }
+      if (P.moved) parts.push('phone moved: head angle and level checks only; put it back for the rest');
+    }
+    if (P.wide) parts.push('widest camera view');
+    return parts.join(' · ');
   }
 
   function fmtClock(sec) {
@@ -3938,17 +4245,19 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
       } catch (e) { /* window closed */ }
     }
     if (P.statusMsg !== P.lastStatus) { P.lastStatus = P.statusMsg; $('#pStatus').textContent = P.statusMsg; }
+    const tt = tiltText();
+    if ($('#pTilt').textContent !== tt) $('#pTilt').textContent = tt;
     $('#pTimer').textContent = fmtClock(P.mon);
 
     const ul = $('#pChecks');
     const active = P.phase === 'monitoring' && P.smooth;
     ul.dataset.idle = active ? 'false' : 'true';
     for (const li of ul.children) {
-      const k = li.dataset.key, v = active ? Math.max(0, P.smooth[k]) : 0;
-      const over = !!active && v >= 1;
+      const k = li.dataset.key, raw = active ? P.smooth[k] : NaN, on = isFinite(raw), v = on ? Math.max(0, raw) : 0;
+      const over = on && v >= 1;
       li.dataset.over = over ? 'true' : 'false';
       li.querySelector('.pc-fill').style.width = (Math.min(1.5, v) / 1.5 * 100).toFixed(1) + '%';
-      li.querySelector('.pc-state').textContent = active ? (over ? 'Fix' : 'OK') : '–';
+      li.querySelector('.pc-state').textContent = active ? (on ? (over ? 'Fix' : 'OK') : 'Paused') : '–';
     }
 
     const seen = P.good + P.bad;
@@ -3980,6 +4289,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
       : P.state === 'bad' ? cs.getPropertyValue('--alert').trim() : cs.getPropertyValue('--ok').trim();
     const sx = W / P.frameW, sy = H / P.frameH;
     const pt = (p) => [p.x * sx, p.y * sy];
+    if (f.mode === 'side') { drawSide(ctx, f, pt, col); return; }
     const hd = f.ear || f.eye;
     const line = (a, b, width) => {
       ctx.lineCap = 'round';
@@ -4000,6 +4310,31 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
       ctx.setLineDash([]);
     }
     for (const p of [f.ls, f.rs, hd.a, hd.b, f.nose]) {
+      const [x, y] = pt(p);
+      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
+    }
+  }
+
+  function drawSide(ctx, f, pt, col) {
+    const R = f.raw;
+    const seg = (a, b, width) => {
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = width + 3;
+      ctx.beginPath(); ctx.moveTo(...pt(a)); ctx.lineTo(...pt(b)); ctx.stroke();
+      ctx.strokeStyle = col; ctx.lineWidth = width;
+      ctx.beginPath(); ctx.moveTo(...pt(a)); ctx.lineTo(...pt(b)); ctx.stroke();
+    };
+    // True vertical through the shoulder: where the ear should sit.
+    const r = (P.cam && P.cam.roll != null ? P.cam.roll : 0) * Math.PI / 180, len = Math.hypot(R.ear.x - R.sh.x, R.ear.y - R.sh.y) * 1.15;
+    const top = { x: R.sh.x + Math.sin(r) * len, y: R.sh.y - Math.cos(r) * len };
+    ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.moveTo(...pt(R.sh)); ctx.lineTo(...pt(top)); ctx.stroke();
+    ctx.setLineDash([]);
+    seg(R.sh, R.ear, 4);
+    if (R.hip) seg(R.hip, R.sh, 4);
+    if (R.eye) seg(R.ear, R.eye, 3);
+    for (const p of [R.ear, R.sh, R.hip, R.eye].filter(Boolean)) {
       const [x, y] = pt(p);
       ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
       ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
@@ -4053,7 +4388,11 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     showErr('');
     if (P.running) return;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showErr(camErr(null)); return; }
+    const sensorsAsked = askSensors();   // must be asked straight from the tap on iPhones
     freshSession();
+    buildChecks(P.mode);
+    P.checks = POSTURE.checksFor(P.mode);
+    sensorsAsked.then(() => { if (P.running) tiltOn(); });
     if (P.sound) ensureAudio();
     $('#pSoundLive').checked = P.sound;
     P.running = true; P.phase = 'loading';
@@ -4077,6 +4416,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     const v = $('#pCam');
     v.srcObject = P.stream;
     try { await v.play(); } catch (e) { /* autoplay muted is allowed; frames still arrive */ }
+    P.wide = await widen(P.track);
     sizeWrap();
     try { P.capture = 'ImageCapture' in window ? new ImageCapture(P.track) : null; } catch (e) { P.capture = null; }
     P.track.addEventListener('ended', () => { if (P.running) endSession('The camera stopped, so the posture check ended.'); });
@@ -4092,6 +4432,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     const hadMonitoring = P.mon >= 10;
     P.running = false; P.phase = 'idle';
     stopTicker();
+    tiltOff();
     if (P.stream) P.stream.getTracks().forEach(t => t.stop());
     $('#pCam').srcObject = null;
     closePip();
@@ -4104,7 +4445,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     if (hadMonitoring) {
       session = {
         source: 'live', mon: P.mon, good: P.good, bad: P.bad, absent: P.absent, warnings: P.warnings,
-        longest: P.longest, issues: { ...P.issues }, timeline: P.timeline.slice(), level: P.level, delay: P.delay,
+        longest: P.longest, issues: { ...P.issues }, timeline: P.timeline.slice(), level: P.level, delay: P.delay, mode: P.mode,
         label: 'Ended ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       renderSession();
@@ -4143,7 +4484,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
       source: 'example', mon: 1500, good: sum('good'), bad: sum('bad'), absent: sum('absent'),
       warnings: segs.filter(x => x[0] === 'bad').length,
       longest: Math.max(...segs.filter(x => x[0] === 'bad').map(x => x[2] - x[1])),
-      issues: { forward: 128, slouch: 61, down: 17 }, level: 'normal', delay: 3,
+      issues: { down: 128, forward: 61, slouch: 17 }, level: 'normal', delay: 3, mode: 'front',
       timeline: segs.map(([s, t0, t1]) => ({ s, t0, t1 })), label: ''
     };
   }
@@ -4159,7 +4500,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     $('#pIssue').textContent = top && top[1] > 0 ? CHECK[top[0]].label : 'None';
     $('#pLongest').textContent = S.warnings ? fmtLong(S.longest) : 'None';
     $('#pAbsent').textContent = fmtLong(S.absent);
-    $('#pSettings').textContent = LEVEL_TEXT[S.level] + ', warn after ' + S.delay + ' s';
+    $('#pSettings').textContent = (S.mode === 'side' ? 'Side view, ' : 'Front view, ') + LEVEL_TEXT[S.level].toLowerCase() + ', warn after ' + S.delay + ' s';
     const chip = $('#pChip');
     if (S.source === 'example') {
       chip.dataset.kind = 'example'; chip.textContent = 'Example result';
@@ -4225,7 +4566,7 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
   window.FPLUI.redrawPosture = drawTimeline;
 
   // ---------- Boot ----------
-  buildChecks();
+  buildChecks('front');
   syncPipBtn();
   session = exampleSession();
   renderSession();
