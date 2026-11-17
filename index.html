@@ -517,6 +517,7 @@ select {
     <button type="button" role="tab" id="tabSleep" aria-controls="panelSleep" aria-selected="false" tabindex="-1">Sleep</button>
     <button type="button" role="tab" id="tabCough" aria-controls="panelCough" aria-selected="false" tabindex="-1">Cough</button>
     <button type="button" role="tab" id="tabHearing" aria-controls="panelHearing" aria-selected="false" tabindex="-1">Hearing</button>
+    <button type="button" role="tab" id="tabVision" aria-controls="panelVision" aria-selected="false" tabindex="-1">Vision</button>
   </nav>
 
   <div class="panel" id="panelPulse" role="tabpanel" aria-labelledby="tabPulse">
@@ -1190,6 +1191,98 @@ select {
           <li>Background noise, loose earphones and a phone that lowers its volume on its own all raise the thresholds.</li>
           <li>The left-right comparison does not need a reference, but cheap earphones can be a few dB louder on one side.</li>
           <li>It does not test understanding speech in noise, which is often the first thing people notice.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <div class="panel" id="panelVision" role="tabpanel" aria-labelledby="tabVision" hidden>
+    <section class="card" id="vsCal">
+      <h3>Screen size</h3>
+      <p id="vsCalStatus">The letters must be an exact physical size, and every phone's screen is different. Do this once on each phone.</p>
+      <div id="vsCalBody">
+        <p>Hold a bank card, ATM card or Aadhaar PVC card upright against the screen, inside the outline. Move the slider until the outline is <strong>exactly the size of the card</strong> on all sides. No card? The outline should be 85.6 mm tall by 54 mm wide.</p>
+        <div style="display: grid; place-items: center; padding: 6px 0; margin-inline: -18px; overflow-x: clip"><div id="vsCardRect" style="border: 2px solid var(--accent); border-radius: 18px; background: var(--shade)"></div></div>
+        <input type="range" id="vsCalRange" min="2.5" max="14" step="0.01" aria-label="Card outline size" style="width: 100%">
+        <div class="copyrow">
+          <button type="button" class="btn-quiet" id="vsCalMinus" aria-label="A little smaller">−</button>
+          <button type="button" class="btn-quiet" id="vsCalPlus" aria-label="A little larger">+</button>
+          <button type="button" class="btn" id="vsCalSave">Save screen size</button>
+          <span class="copy-msg" id="vsCalMsg"></span>
+        </div>
+      </div>
+      <button type="button" class="textbtn" id="vsCalEdit" hidden>Change screen size</button>
+    </section>
+
+    <section class="capture">
+      <div class="capture-main">
+        <h2>Distance vision</h2>
+        <p class="capture-lede">A tumbling E chart, the kind used in eye camps, so it works for people who cannot read. The person stands back and points which way the E's arms face; a helper next to the phone taps the same arrow. Each eye is tested on its own.</p>
+        <div class="field-row">
+          <label class="field" for="vsDist">Distance
+            <select id="vsDist"><option value="3" selected>3 metres (standard)</option><option value="2">2 metres (small room)</option></select>
+          </label>
+          <label class="field" for="vsWho">Person tested
+            <select id="vsWho"><option value="adult" selected>Adult</option><option value="child">Child, 5 to 15 years</option></select>
+          </label>
+        </div>
+        <label class="check" for="vsGlasses"><input type="checkbox" id="vsGlasses"><span>Wearing their distance glasses</span></label>
+        <button type="button" class="btn" id="vsDistStart">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M1.8 10s3-5.6 8.2-5.6 8.2 5.6 8.2 5.6-3 5.6-8.2 5.6S1.8 10 1.8 10z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="10" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+          Start distance check
+        </button>
+        <p class="error" id="vsError" role="alert" hidden></p>
+      </div>
+      <div class="howto-wrap">
+        <p class="howto-title">Setting up</p>
+        <ol class="howto">
+          <li><span>Turn the <strong>screen brightness to full</strong>. Use a well-lit room, without light shining on the screen.</span></li>
+          <li><span>Prop the phone at the person's <strong>eye height</strong>, for example on a shelf or against books.</span></li>
+          <li><span>Measure <strong>3 metres</strong> (or 2) from the screen with a tape, and have the person stand there.</span></li>
+          <li><span>The helper stands beside the phone and taps the arrow the person points to. Show them a big E first so they understand.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="readout" aria-live="polite" id="vsReadout"></section>
+
+    <section class="card">
+      <h3>Near vision, for reading glasses</h3>
+      <p>Hold the phone 40 cm from your eyes (a little less than elbow to fingertips), with both eyes open and your reading glasses on if you have them. Tap the arrow that matches the way the E's arms face. Difficulty with small print is common after 40 and easily fixed with reading glasses.</p>
+      <button type="button" class="btn" id="vsNearStart">Start near check</button>
+    </section>
+
+    <section class="card">
+      <h3>Colour plates</h3>
+      <p>Six circles of coloured dots, each hiding a number. People with red-green colour blindness cannot see some of them. The first one everyone should see. These plates are generated by this page, not copies of the printed Ishihara book.</p>
+      <button type="button" class="btn" id="vsColourStart">Start colour check</button>
+    </section>
+
+    <section class="card">
+      <h3>Amsler grid</h3>
+      <p>A square grid with a dot in the middle, for spotting problems in the centre of the eye, such as macular degeneration or swelling from diabetes. Hold the phone about 30 cm away, cover one eye, keep looking at the dot, and tap any squares that look wavy, blurred, faded or missing.</p>
+      <button type="button" class="btn" id="vsAmslerStart">Start Amsler grid</button>
+    </section>
+
+    <div class="method">
+      <section>
+        <h2>How the checks work</h2>
+        <ol>
+          <li><strong>Exact letter size.</strong> From the card match, the page knows how many screen pixels make a millimetre. A 6/6 E is drawn 5 minutes of arc tall at the chosen distance: 4.4 mm at 3 metres.</li>
+          <li><strong>Lines of five.</strong> Each size shows up to five Es in random directions. Three right passes the line; three wrong fails it.</li>
+          <li><strong>Finding the smallest line.</strong> The check starts at 6/24, steps two lines smaller while lines pass, then one at a time, until the line below the smallest passed line has failed.</li>
+          <li><strong>Referral.</strong> Worse than 6/12 in either eye (6/9 for school children) means an eye examination is needed, following WHO school and community screening guidance.</li>
+          <li><strong>Colour plates.</strong> The number differs from the background only in what the red-sensing or green-sensing cones see, so it disappears for someone missing that cone type. Dot brightness varies at random so brightness gives no clue.</li>
+          <li><strong>Amsler grid.</strong> Each square is 5 mm, which is 1 degree of vision at 30 cm.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Limits of this version</h2>
+        <ul>
+          <li>This is a learning tool, not a medical device, and not a substitute for an eye examination.</li>
+          <li>Results depend on the card match, the distance and the room light. A wrong distance shifts the result by about a line per 25%.</li>
+          <li>Phone screens show colours differently, so the colour plates are rougher than printed plates.</li>
+          <li>It cannot detect glaucoma, cataract or diabetic eye disease directly. People with diabetes need a yearly eye examination whatever these checks show.</li>
         </ul>
       </section>
     </div>
@@ -3323,7 +3416,8 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     { btn: $('#tabPosture'), panel: $('#panelPosture'), hash: 'posture' },
     { btn: $('#tabSleep'), panel: $('#panelSleep'), hash: 'sleep' },
     { btn: $('#tabCough'), panel: $('#panelCough'), hash: 'cough' },
-    { btn: $('#tabHearing'), panel: $('#panelHearing'), hash: 'hearing' }
+    { btn: $('#tabHearing'), panel: $('#panelHearing'), hash: 'hearing' },
+    { btn: $('#tabVision'), panel: $('#panelVision'), hash: 'vision' }
   ];
   function selectTab(i, focus) {
     tabs.forEach((t, k) => {
@@ -4474,6 +4568,138 @@ registerProcessor('vx-bands', VXBands);`;
     return { FREQS, PTA, MIN, MAX, GRADES, Staircase, grade, summarize, makeRef, listener, runSim };
   })();
 
+  // ================= Vision: tumbling E sizes and steps, colour plates =================
+  api.vision = (() => {
+    const r1 = (x) => Math.round(x * 10) / 10;
+    const LEVELS = []; for (let v = 10; v >= -1; v--) LEVELS.push(v / 10);   // logMAR 1.0 (6/60) to -0.1 (6/4.8)
+    const SNELLEN = { '1': '6/60', '0.9': '6/48', '0.8': '6/38', '0.7': '6/30', '0.6': '6/24', '0.5': '6/19', '0.4': '6/15', '0.3': '6/12', '0.2': '6/9.5', '0.1': '6/7.5', '0': '6/6', '-0.1': '6/4.8' };
+    const snellen = (lm) => (lm == null ? 'worse than 6/60' : SNELLEN[String(r1(lm))] || '6/' + Math.round(6 * Math.pow(10, lm)));
+    // Letter height: 5 minutes of arc at logMAR 0, scaled by 10^logMAR.
+    const heightMm = (lm, distM) => distM * 1000 * Math.tan((5 / 60) * Math.pow(10, lm) * Math.PI / 180);
+    // N-point print size at 40 cm (1 M ≈ N8): N ≈ 8 × M, M = 0.4 m × 10^logMAR.
+    const NS = [5, 6, 8, 10, 12, 14, 18, 24, 36, 48];
+    const nPoint = (lm) => {
+      if (lm == null) return 'larger than N48';
+      const n = 3.2 * Math.pow(10, lm);
+      if (n < 4.5) return 'N5 or smaller';
+      let best = NS[0]; for (const v of NS) if (Math.abs(Math.log(v / n)) < Math.abs(Math.log(best / n))) best = v;
+      return 'N' + best;
+    };
+
+    // Bracketing: step down 0.2 while lines pass, then 0.1, until the line below the smallest passed line has failed.
+    function nextLevel(res, start = 0.6, min = -0.1) {
+      const lv = Object.keys(res).map(Number);
+      if (!lv.length) return { next: start };
+      const passed = lv.filter((l) => res[l]), failed = lv.filter((l) => !res[l]);
+      if (!passed.length) {
+        const top = Math.max(...failed);
+        if (top >= 1 - 1e-9) return { done: true, result: null };
+        return { next: r1(Math.min(1, top + 0.2)) };
+      }
+      const P = Math.min(...passed);
+      if (P <= min + 1e-9) return { done: true, result: P };
+      const below = failed.filter((l) => l < P - 1e-9);
+      if (below.length) {
+        const F = Math.max(...below);
+        if (r1(P - 0.1) <= F + 1e-9) return { done: true, result: P };
+        return { next: r1(P - 0.1) };
+      }
+      return { next: r1(Math.max(min, P - 0.2)) };
+    }
+    // One line: up to five Es; three right passes, three wrong fails.
+    function Line() {
+      let right = 0, wrong = 0;
+      return { answer(ok) { if (ok) right++; else wrong++; return right >= 3 ? 'pass' : wrong >= 3 ? 'fail' : null; }, shown: () => right + wrong };
+    }
+    function simulate(T, o = {}) {
+      const r = U.rng(o.seed || 1), slope = o.slope || 0.04;
+      const res = {};
+      let shown = 0, step;
+      while (!(step = nextLevel(res, o.start, o.min)).done) {
+        const L = step.next, line = Line();
+        let out = null;
+        while (!out) { shown++; out = line.answer(r() < 0.25 + 0.75 / (1 + Math.exp(-(L - T) / slope))); }
+        res[L] = out === 'pass';
+      }
+      return { result: step.result, shown };
+    }
+
+    // WHO distance vision impairment, by the better eye (ICD-11 categories).
+    function whoDistance(better) {
+      if (better === undefined) return null;
+      if (better == null || better > 1.0 + 1e-9) return { name: 'Severe vision impairment or worse', q: 'poor' };
+      if (better > 0.5 + 1e-9) return { name: 'Moderate vision impairment', q: 'poor' };
+      if (better > 0.3 + 1e-9) return { name: 'Mild vision impairment', q: 'fair' };
+      return { name: 'No distance vision impairment', q: 'good' };
+    }
+    // Screening referral: worse than 6/12 for adults, worse than 6/9 for school children (WHO school eye health guidance).
+    const refer = (lm, child) => lm == null || lm > (child ? 0.2 : 0.3) + 1e-9;
+
+    // ---------- Colour ----------
+    const dec = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+    const enc = (c) => { c = Math.min(1, Math.max(0, c)); return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; };
+    // Viénot, Brettel and Mollon (1999)
+    const toLMS = ([r, g, b]) => [17.8824 * r + 43.5161 * g + 4.11935 * b, 3.45565 * r + 27.1554 * g + 3.86714 * b, 0.0299566 * r + 0.184309 * g + 1.46709 * b];
+    const toRGB = ([l, m, s]) => [0.0809444479 * l - 0.130504409 * m + 0.116721066 * s, -0.0102485335 * l + 0.0540193266 * m - 0.113614708 * s, -0.000365296938 * l - 0.00412161469 * m + 0.693511405 * s];
+    function dichromat(rgb, type) {
+      const [l, m, s] = toLMS(rgb);
+      if (type === 'protan') return toRGB([2.02344 * m - 2.52581 * s, m, s]);
+      if (type === 'deutan') return toRGB([l, 0.494207 * l + 1.24827 * s, s]);
+      return rgb;
+    }
+    function lab(rgb) {
+      const [r, g, b] = rgb;
+      const X = 0.4124 * r + 0.3576 * g + 0.1805 * b, Y = 0.2126 * r + 0.7152 * g + 0.0722 * b, Z = 0.0193 * r + 0.1192 * g + 0.9505 * b;
+      const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+      const fx = f(X / 0.95047), fy = f(Y), fz = f(Z / 1.08883);
+      return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+    }
+    const dE = (a, b) => { const p = lab(a), q = lab(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+    const inGamut = (c) => c.every((v) => v >= 0.02 && v <= 0.98);
+    // A figure colour that differs from the background only in what one cone type sees, so that cone type's absence hides it.
+    function confusion(base, type, target) {
+      const lms = toLMS(base), k = type === 'protan' ? 0 : 1;
+      let best = null;
+      for (const sign of [1, -1]) {
+        let lo = 0, hi = 0.6;
+        for (let i = 0; i < 30; i++) {
+          const mid = (lo + hi) / 2, x = lms.slice(); x[k] *= 1 + sign * mid;
+          const c = toRGB(x);
+          if (inGamut(c) && dE(c, base) <= target) lo = mid; else hi = mid;
+        }
+        const x = lms.slice(); x[k] *= 1 + sign * lo;
+        const c = toRGB(x), d = dE(c, base);
+        if (!best || d > best.d) best = { fig: c, d };
+      }
+      return best;
+    }
+    // The plates: one everyone should see, then red-green plates of two strengths for each cone type.
+    const PLATES = [
+      { type: 'demo', base: [0.55, 0.42, 0.18], target: 0, digit: 7 },
+      { type: 'protan', base: [0.42, 0.36, 0.14], target: 22, digit: 5 },
+      { type: 'deutan', base: [0.40, 0.38, 0.13], target: 22, digit: 3 },
+      { type: 'protan', base: [0.36, 0.30, 0.16], target: 12, digit: 8 },
+      { type: 'deutan', base: [0.34, 0.32, 0.15], target: 12, digit: 6 },
+      { type: 'deutan', base: [0.45, 0.33, 0.20], target: 30, digit: 2 }
+    ];
+    function plateColours(p) {
+      if (p.type === 'demo') return { bg: p.base, fig: [0.08, 0.16, 0.38] };
+      return { bg: p.base, fig: confusion(p.base, p.type, p.target).fig };
+    }
+    function colourResult(answers) {
+      // answers: [{type, ok}]
+      const demo = answers.find((a) => a.type === 'demo');
+      const rg = answers.filter((a) => a.type !== 'demo'), miss = rg.filter((a) => !a.ok);
+      const pm = miss.filter((a) => a.type === 'protan').length, dm = miss.filter((a) => a.type === 'deutan').length;
+      return {
+        demoOk: !!(demo && demo.ok), right: rg.length - miss.length, total: rg.length,
+        suspect: miss.length >= 2, kind: miss.length < 2 ? null : (pm > dm ? 'red (protan)' : dm > pm ? 'green (deutan)' : 'red-green')
+      };
+    }
+
+    return { LEVELS, snellen, heightMm, nPoint, nextLevel, Line, simulate, whoDistance, refer, dec, enc, dichromat, dE, confusion, PLATES, plateColours, colourResult };
+  })();
+
   return api;
 })();
 if (typeof module !== 'undefined') module.exports = VX;
@@ -5458,6 +5684,358 @@ if (typeof module !== 'undefined') module.exports = VX;
   refStatus();
   render();
   onShow('hearing', panel, draw);
+})();
+</script>
+<script>
+// ================= Vision tab =================
+(() => {
+  const { $, esc, stamp, store, Live, renderReadout, onShow, showError, buzz, beep } = window.VXUI;
+  const V = VX.vision, U = VX.U;
+  const panel = $('#panelVision');
+  const CARD_H = 85.6, CARD_W = 53.98;
+  const DIRS = ['right', 'down', 'left', 'up'];
+  let data = store.get('vision', {}) || {};
+  const save = () => store.set('vision', data);
+  const EXAMPLE = {
+    dist: { R: 0.0, L: 0.4, distM: 3, child: false, glasses: false, when: '' },
+    near: { lm: 0.5, when: '' },
+    colour: { right: 5, total: 5, demoOk: true, suspect: false, kind: null },
+    amsler: { R: [], L: [] }
+  };
+  const real = () => !!(data.dist || data.near || data.colour || data.amsler);
+
+  // ---------- Screen size ----------
+  const touch = matchMedia('(pointer: coarse)').matches;
+  let pxmm = data.pxmm || (touch ? 6.3 : 3.78);
+  function calDraw() {
+    const r = $('#vsCardRect');
+    r.style.width = (CARD_W * pxmm).toFixed(1) + 'px';
+    r.style.height = (CARD_H * pxmm).toFixed(1) + 'px';
+    r.style.borderRadius = (3.2 * pxmm).toFixed(1) + 'px';
+    $('#vsCalRange').value = pxmm;
+  }
+  function calStatus() {
+    const done = !!data.pxmm;
+    $('#vsCalBody').hidden = done;
+    $('#vsCalEdit').hidden = !done;
+    $('#vsCalStatus').textContent = done
+      ? 'Screen size saved for this phone (' + data.pxmm.toFixed(2) + ' screen points per millimetre).'
+      : 'The letters must be an exact physical size, and every phone\'s screen is different. Do this once on each phone.';
+    ['#vsDistStart', '#vsNearStart', '#vsAmslerStart'].forEach((s) => { $(s).title = done ? '' : 'Set the screen size first'; });
+  }
+  $('#vsCalRange').addEventListener('input', (e) => { pxmm = +e.target.value; calDraw(); });
+  $('#vsCalMinus').addEventListener('click', () => { pxmm = Math.max(2.5, pxmm - 0.03); calDraw(); });
+  $('#vsCalPlus').addEventListener('click', () => { pxmm = Math.min(14, pxmm + 0.03); calDraw(); });
+  $('#vsCalSave').addEventListener('click', () => { data.pxmm = pxmm; save(); calStatus(); $('#vsCalMsg').textContent = ''; });
+  $('#vsCalEdit').addEventListener('click', () => { $('#vsCalBody').hidden = false; $('#vsCalEdit').hidden = true; calDraw(); });
+  const needCal = () => {
+    if (data.pxmm) return false;
+    showError($('#vsError'), 'Set the screen size first, using a bank or Aadhaar card (top of this section).');
+    $('#vsCal').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return true;
+  };
+
+  // ---------- Results ----------
+  function render() {
+    const d = real() ? data : EXAMPLE, ex = !real();
+    const dist = d.dist, near = d.near, col = d.colour, ams = d.amsler;
+    const parts = [];
+    let q = 'good';
+    const bump = (x) => { if (x === 'poor' || (x === 'fair' && q === 'good')) q = x; };
+    let worse;
+    if (dist) {
+      worse = dist.R == null || dist.L == null ? null : Math.max(dist.R, dist.L);
+      const better = dist.R == null ? dist.L : dist.L == null ? dist.R : Math.min(dist.R, dist.L);
+      const cut = dist.child ? '6/9' : '6/12';
+      const bad = ['R', 'L'].filter((e) => V.refer(dist[e], dist.child)).map((e) => (e === 'R' ? 'right' : 'left'));
+      if (bad.length) {
+        bump('poor');
+        const who = V.whoDistance(better);
+        parts.push('Vision is below ' + cut + ' in the ' + bad.join(' and ') + ' eye' + (bad.length > 1 ? 's' : '') + '. See an eye doctor or optometrist. Quick check: look at the chart again through a pinhole made in a card; if it gets clearer, glasses will probably fix it.' + (who && who.q !== 'good' ? ' Better eye: ' + who.name.toLowerCase() + ' (WHO).' : ''));
+      } else if (dist.R != null && dist.L != null && Math.abs(dist.R - dist.L) >= 0.2 - 1e-9) {
+        bump('fair');
+        parts.push('The two eyes differ by two lines or more.' + (dist.child ? ' In a child this can lead to a lazy eye, so an eye check is worthwhile.' : ' Worth mentioning at the next eye check.'));
+      }
+    }
+    if (near && (near.lm == null || near.lm > 0.3 + 1e-9)) { bump('fair'); parts.push('Small print (N6) is hard to read at 40 cm. Reading glasses usually fix this, especially after age 40; they are inexpensive at eye camps and opticians.'); }
+    if (col && (col.suspect || !col.demoOk)) {
+      bump('fair');
+      parts.push(col.suspect
+        ? 'Some colour plates were missed, which can mean ' + (col.kind || 'red-green') + ' colour blindness. It is inherited, more common in men and has no treatment, but it is useful to know for jobs and driving. An eye doctor can confirm it with printed plates.'
+        : 'The first colour plate, which everyone should see, was missed. Try again with full screen brightness and good light.');
+    }
+    const amN = ams ? (ams.R || []).length + (ams.L || []).length : 0;
+    if (amN) { bump('poor'); parts.push('Areas of the Amsler grid looked wavy, blurred or missing. See an eye doctor soon, especially if this is new: it can be a sign of a problem in the centre of the retina, such as macular degeneration or diabetic eye disease.'); }
+    if (!parts.length && (dist || near || col || ams)) parts.push('No problems found in the checks that were run.');
+    const lmTxt = (v) => (v == null ? '' : ' <span class="footnote">(logMAR ' + v.toFixed(1) + ')</span>');
+    const quad = (cells) => {
+      if (!cells || !cells.length) return 'clear';
+      const names = new Set(cells.map(([r, c, n]) => (r < n / 2 ? 'upper' : 'lower') + ' ' + (c < n / 2 ? 'left' : 'right')));
+      return cells.length + ' squares, ' + [...names].join(', ');
+    };
+    const warn = [];
+    if (!ex && dist && !data.pxmm) warn.push('The screen size has been cleared since this check, so redo it to be sure.');
+    renderReadout($('#vsReadout'), {
+      label: 'Distance vision, worse eye',
+      value: dist ? V.snellen(worse) : '--', small: !!dist && worse == null,
+      unit: '',
+      sub: dist ? 'Right ' + V.snellen(dist.R) + ' · Left ' + V.snellen(dist.L) + ' · ' + dist.distM + ' m' + (dist.glasses ? ', with glasses' : ', without glasses') : 'Not tested yet',
+      stats: [
+        ['Right eye', dist ? esc(V.snellen(dist.R)) + lmTxt(dist.R) : '–'],
+        ['Left eye', dist ? esc(V.snellen(dist.L)) + lmTxt(dist.L) : '–'],
+        ['Near vision at 40 cm', near ? esc(V.nPoint(near.lm)) + ' print' : '–'],
+        ['Colour plates', col ? col.right + ' of ' + col.total + ' red-green plates' : '–'],
+        ['Amsler grid', ams ? 'Right ' + esc(quad(ams.R)) + ' · Left ' + esc(quad(ams.L)) : '–'],
+        ['Person tested', dist ? (dist.child ? 'Child' : 'Adult') : '–']
+      ],
+      verdict: parts.length ? { q, text: parts.join(' ') + ' This is a screening check, not an eye examination.' } : null,
+      example: ex,
+      source: ex ? 'A made-up result, shown until you run a check: good right eye, weaker left eye, needs reading glasses.' : 'Your latest result for each check, kept on this phone only.',
+      warnings: warn,
+      extra: ex ? '' : '<p class="source"><button type="button" class="textbtn" id="vsClearBtn">Clear vision results</button></p>',
+      share: ex ? '' : [
+        'Phone Vitals Lab: eye check, ' + stamp(),
+        dist ? 'Distance (' + dist.distM + ' m, ' + (dist.glasses ? 'with' : 'without') + ' glasses): right ' + V.snellen(dist.R) + ', left ' + V.snellen(dist.L) + ' (' + dist.when + ')' : '',
+        near ? 'Near at 40 cm: ' + V.nPoint(near.lm) + ' (' + near.when + ')' : '',
+        col ? 'Colour plates: ' + col.right + ' of ' + col.total + (col.suspect ? ', possible ' + col.kind + ' deficiency' : '') + ' (' + col.when + ')' : '',
+        ams ? 'Amsler grid: right ' + quad(ams.R) + ', left ' + quad(ams.L) + ' (' + ams.when + ')' : '',
+        'Phone screening only, not an eye examination.'
+      ].filter(Boolean).join('\n')
+    });
+    const b = $('#vsClearBtn');
+    if (b) b.addEventListener('click', () => { data = { pxmm: data.pxmm }; save(); render(); });
+  }
+
+  // ---------- Shared live helpers ----------
+  function session(chip) {
+    const s = { alive: true };
+    s.quit = (msg) => { if (!s.alive) return; s.alive = false; Live.close(); if (msg) showError($('#vsError'), msg); };
+    Live.open({ chip, status: '', noBar: true, onStop: () => s.quit(), onHidden: () => s.quit('The check stopped because the page went to the background.') });
+    s.choose = (html, buttons) => new Promise((resolve) => {
+      Live.stage.innerHTML = html + '<div class="btn-row">' + buttons.map((b, i) => '<button type="button" class="bigbtn' + (b.quiet ? ' quiet' : '') + '" data-i="' + i + '" style="min-height: 72px; font-size: 18px">' + esc(b.label) + '</button>').join('') + '</div>';
+      Live.stage.querySelectorAll('[data-i]').forEach((el) => el.addEventListener('click', () => resolve(buttons[+el.dataset.i].value)));
+      const iv = setInterval(() => { if (!s.alive) { clearInterval(iv); resolve(null); } }, 200);
+    });
+    return s;
+  }
+  function sizeCanvas(cv, cssW, cssH) {
+    const dpr = window.devicePixelRatio || 1;
+    cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
+    cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
+    return { ctx: cv.getContext('2d'), dpr };
+  }
+
+  // ---------- Tumbling E ----------
+  function drawE(cv, lm, distM, dir) {
+    const box = cv.parentNode.getBoundingClientRect();
+    const { ctx, dpr } = sizeCanvas(cv, Math.floor(box.width), Math.floor(Math.min(window.innerHeight * 0.48, box.width * 1.1)));
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cv.width, cv.height);
+    const unit = Math.max(1, Math.round(V.heightMm(lm, distM) * data.pxmm * dpr / 5));
+    ctx.save();
+    ctx.translate(Math.round(cv.width / 2), Math.round(cv.height / 2));
+    ctx.rotate(dir * Math.PI / 2);
+    ctx.fillStyle = '#000000';
+    const o = -2.5 * unit;
+    ctx.fillRect(o, o, unit, 5 * unit);
+    for (const row of [0, 2, 4]) ctx.fillRect(o, o + row * unit, 5 * unit, unit);
+    ctx.restore();
+  }
+  function levelsFor(distM) {
+    const dpr = window.devicePixelRatio || 1;
+    let min = -0.1;
+    while (min < 1 && V.heightMm(min, distM) * data.pxmm * dpr / 5 < 2) min = Math.round((min + 0.1) * 10) / 10;
+    return min;
+  }
+
+  async function acuity(s, eyes, distM, intro) {
+    const min = levelsFor(distM), out = {};
+    for (const eye of eyes) {
+      if ((await s.choose(intro(eye), [{ label: 'Start', value: 1 }])) == null) return null;
+      Live.stage.innerHTML =
+        '<div style="border-radius: 10px; overflow: hidden; background: #FFFFFF"><canvas id="vsE" aria-label="Tumbling E"></canvas></div>' +
+        '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 360px; justify-self: center; width: 100%">' +
+        '<span></span><button type="button" class="bigbtn" data-a="3" style="min-height: 64px" aria-label="Up">↑</button><span></span>' +
+        '<button type="button" class="bigbtn" data-a="2" style="min-height: 64px" aria-label="Left">←</button><button type="button" class="bigbtn quiet" data-a="x" style="min-height: 64px; font-size: 15px">Can\'t see</button><button type="button" class="bigbtn" data-a="0" style="min-height: 64px" aria-label="Right">→</button>' +
+        '<span></span><button type="button" class="bigbtn" data-a="1" style="min-height: 64px" aria-label="Down">↓</button><span></span></div>';
+      let pending = null;
+      Live.stage.querySelectorAll('[data-a]').forEach((b) => b.addEventListener('click', () => { if (pending) { const p = pending; pending = null; buzz(10); p(b.dataset.a === 'x' ? -1 : +b.dataset.a); } }));
+      const cv = $('#vsE'), res = {};
+      let step, last = -1;
+      while (s.alive && !(step = V.nextLevel(res, 0.6, min)).done) {
+        const L = step.next, line = V.Line();
+        let outcome = null;
+        while (!outcome && s.alive) {
+          let dir; do { dir = Math.floor(Math.random() * 4); } while (dir === last);
+          last = dir;
+          drawE(cv, L, distM, dir);
+          Live.status((eye === 'B' ? 'Both eyes' : eye === 'R' ? 'Right eye' : 'Left eye') + ' · line ' + V.snellen(L) + ' · E ' + (line.shown() + 1));
+          const a = await new Promise((resolve) => { pending = resolve; const iv = setInterval(() => { if (!s.alive) { clearInterval(iv); resolve(null); } else if (!pending) clearInterval(iv); }, 200); });
+          if (a == null || !s.alive) return null;
+          outcome = line.answer(a === dir);
+        }
+        res[L] = outcome === 'pass';
+      }
+      if (!s.alive) return null;
+      out[eye] = step.result;
+      beep([660, 880], 0.12);
+    }
+    return out;
+  }
+
+  $('#vsDistStart').addEventListener('click', async () => {
+    showError($('#vsError'), '');
+    if (needCal()) return;
+    const distM = +$('#vsDist').value, child = $('#vsWho').value === 'child', glasses = $('#vsGlasses').checked;
+    const s = session('Distance vision');
+    Live.note('Screen brightness at full. Person at ' + distM + ' m, phone at their eye height.');
+    const r = await acuity(s, ['R', 'L'], distM, (eye) =>
+      '<p class="live-note" style="font-size: 16px"><strong>' + (eye === 'R' ? 'Right' : 'Left') + ' eye.</strong> The person stands ' + distM + ' m away and covers the <strong>' + (eye === 'R' ? 'left' : 'right') + ' eye</strong> with a palm, without pressing on it. They point the way the E\'s arms face, and you tap the same arrow. If they cannot tell, tap "Can\'t see". Guessing is fine.</p>');
+    if (!r) return;
+    s.quit();
+    data.dist = { R: r.R, L: r.L, distM, child, glasses, when: stamp() };
+    save(); render();
+    $('#vsReadout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  $('#vsNearStart').addEventListener('click', async () => {
+    showError($('#vsError'), '');
+    if (needCal()) return;
+    const s = session('Near vision');
+    Live.note('Hold the phone 40 cm away the whole time. Wear reading glasses if you have them.');
+    const r = await acuity(s, ['B'], 0.4, () => '<p class="live-note" style="font-size: 16px"><strong>Both eyes open.</strong> Hold the phone 40 cm from your eyes, about a ruler and a third. Tap the arrow that matches the way the E\'s arms face. Tap "Can\'t see" when it is too small.</p>');
+    if (!r) return;
+    s.quit();
+    data.near = { lm: r.B, when: stamp() };
+    save(); render();
+    $('#vsReadout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // ---------- Colour plates ----------
+  const maskCache = {};
+  function digitMask(d) {
+    if (maskCache[d]) return maskCache[d];
+    const c = document.createElement('canvas'); c.width = c.height = 200;
+    const x = c.getContext('2d');
+    x.fillStyle = '#000'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = 'bold 150px ' + getComputedStyle(document.body).fontFamily;
+    x.fillText(String(d), 100, 106);
+    return (maskCache[d] = x.getImageData(0, 0, 200, 200).data);
+  }
+  function drawPlate(cv, p, seed) {
+    const box = cv.parentNode.getBoundingClientRect();
+    const size = Math.floor(Math.min(box.width, window.innerHeight * 0.46));
+    const { ctx } = sizeCanvas(cv, size, size);
+    const W = cv.width, col = V.plateColours(p), mask = digitMask(p.digit), r = U.rng(seed);
+    ctx.clearRect(0, 0, W, W);
+    const R = 0.48, cell = 0.06, grid = new Map(), dots = [];
+    for (let i = 0; i < 9000 && dots.length < 1400; i++) {
+      const rad = 0.009 + 0.02 * r(), a = r() * 2 * Math.PI, dd = Math.sqrt(r()) * R;
+      const x = 0.5 + dd * Math.cos(a), y = 0.5 + dd * Math.sin(a);
+      if (dd + rad > R) continue;
+      const gx = Math.floor(x / cell), gy = Math.floor(y / cell);
+      let clash = false;
+      for (let ix = gx - 1; ix <= gx + 1 && !clash; ix++) for (let iy = gy - 1; iy <= gy + 1 && !clash; iy++) {
+        for (const o of grid.get(ix + ',' + iy) || []) if (Math.hypot(o.x - x, o.y - y) < o.rad + rad + 0.003) { clash = true; break; }
+      }
+      if (clash) continue;
+      const dot = { x, y, rad };
+      dots.push(dot);
+      const k = gx + ',' + gy; if (!grid.has(k)) grid.set(k, []); grid.get(k).push(dot);
+    }
+    for (const o of dots) {
+      const fig = mask[(Math.floor(o.y * 200) * 200 + Math.floor(o.x * 200)) * 4 + 3] > 100;
+      const j = 0.78 + 0.37 * r(), c = (fig ? col.fig : col.bg).map((v) => Math.round(255 * V.enc(v * j)));
+      ctx.fillStyle = 'rgb(' + c.join(',') + ')';
+      ctx.beginPath(); ctx.arc(o.x * W, o.y * W, o.rad * W, 0, 2 * Math.PI); ctx.fill();
+    }
+  }
+  $('#vsColourStart').addEventListener('click', async () => {
+    showError($('#vsError'), '');
+    const s = session('Colour plates');
+    Live.note('Full screen brightness, normal room light, glasses on if you wear them. Answer within a few seconds; don\'t study the plate.');
+    const answers = [];
+    for (let i = 0; i < V.PLATES.length && s.alive; i++) {
+      const p = V.PLATES[i];
+      Live.status('Plate ' + (i + 1) + ' of ' + V.PLATES.length + ': which number do you see?');
+      Live.stage.innerHTML = '<div style="display: grid; place-items: center"><canvas id="vsPlate" aria-label="Colour plate ' + (i + 1) + '"></canvas></div>' +
+        '<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px">' +
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => '<button type="button" class="bigbtn" data-n="' + n + '" style="min-height: 52px; font-size: 20px">' + n + '</button>').join('') +
+        '<button type="button" class="bigbtn quiet" data-n="0" style="min-height: 52px; font-size: 14px">None</button></div>';
+      drawPlate($('#vsPlate'), p, 100 + i * 7);
+      const a = await new Promise((resolve) => {
+        Live.stage.querySelectorAll('[data-n]').forEach((b) => b.addEventListener('click', () => resolve(+b.dataset.n)));
+        const iv = setInterval(() => { if (!s.alive) { clearInterval(iv); resolve(null); } }, 200);
+      });
+      if (a == null) return;
+      buzz(10);
+      answers.push({ type: p.type, ok: a === p.digit });
+    }
+    if (!s.alive) return;
+    s.quit();
+    data.colour = Object.assign(V.colourResult(answers), { when: stamp() });
+    save(); render();
+    $('#vsReadout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // ---------- Amsler grid ----------
+  function drawGrid(cv, n, cellPx, marks) {
+    const { ctx, dpr } = sizeCanvas(cv, n * cellPx + 2, n * cellPx + 2);
+    const c = cellPx * dpr, o = dpr;
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = 'rgba(179, 22, 60, 0.35)';
+    for (const k of marks) { const [r, q] = k.split(',').map(Number); ctx.fillRect(o + q * c, o + r * c, c, c); }
+    ctx.strokeStyle = '#000000'; ctx.lineWidth = Math.max(1, Math.round(dpr * 0.8));
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) { const p = Math.round(o + i * c) + 0.5; ctx.moveTo(p, o); ctx.lineTo(p, o + n * c); ctx.moveTo(o, p); ctx.lineTo(o + n * c, p); }
+    ctx.stroke();
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.arc(o + n * c / 2, o + n * c / 2, Math.max(3, c * 0.18), 0, 2 * Math.PI); ctx.fill();
+  }
+  $('#vsAmslerStart').addEventListener('click', async () => {
+    showError($('#vsError'), '');
+    if (needCal()) return;
+    const s = session('Amsler grid');
+    const out = {};
+    for (const eye of ['R', 'L']) {
+      if ((await s.choose('<p class="live-note" style="font-size: 16px"><strong>' + (eye === 'R' ? 'Right' : 'Left') + ' eye.</strong> Glasses for reading on, if you use them. Hold the phone about 30 cm away. Cover your <strong>' + (eye === 'R' ? 'left' : 'right') + ' eye</strong>. Look only at the dot in the middle, then tap any squares that look wavy, bent, blurred, faded or missing.</p>', [{ label: 'Show the grid', value: 1 }])) == null) return;
+      Live.status((eye === 'R' ? 'Right' : 'Left') + ' eye: keep looking at the centre dot');
+      const width = Live.stage.getBoundingClientRect().width;
+      const cellPx = 5 * data.pxmm;
+      let n = Math.min(20, Math.floor(Math.min(width - 4, window.innerHeight * 0.55) / cellPx));
+      if (n % 2) n--;
+      n = Math.max(6, n);
+      const marks = new Set();
+      Live.stage.innerHTML = '<div style="display: grid; place-items: center"><canvas id="vsGrid" aria-label="Amsler grid: tap squares that look wrong" style="touch-action: manipulation"></canvas></div>' +
+        '<div class="btn-row"><button type="button" class="bigbtn" id="vsGridDone" style="min-height: 64px; font-size: 18px">Done with this eye</button><button type="button" class="bigbtn quiet" id="vsGridClear" style="min-height: 64px; font-size: 18px">Clear marks</button></div>';
+      const cv = $('#vsGrid');
+      drawGrid(cv, n, cellPx, marks);
+      cv.addEventListener('click', (e) => {
+        const b = cv.getBoundingClientRect();
+        const q = Math.floor((e.clientX - b.left - 1) / cellPx), r = Math.floor((e.clientY - b.top - 1) / cellPx);
+        if (q < 0 || r < 0 || q >= n || r >= n) return;
+        const k = r + ',' + q;
+        if (marks.has(k)) marks.delete(k); else marks.add(k);
+        buzz(8);
+        drawGrid(cv, n, cellPx, marks);
+      });
+      $('#vsGridClear').addEventListener('click', () => { marks.clear(); drawGrid(cv, n, cellPx, marks); });
+      const ok = await new Promise((resolve) => {
+        $('#vsGridDone').addEventListener('click', () => resolve(true));
+        const iv = setInterval(() => { if (!s.alive) { clearInterval(iv); resolve(false); } }, 200);
+      });
+      if (!ok) return;
+      out[eye] = [...marks].map((k) => k.split(',').map(Number).concat([n]));
+    }
+    s.quit();
+    data.amsler = { R: out.R, L: out.L, when: stamp() };
+    save(); render();
+    $('#vsReadout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  calDraw();
+  calStatus();
+  render();
+  onShow('vision', panel, () => {});
 })();
 </script>
 </body>
