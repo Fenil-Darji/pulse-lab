@@ -44,7 +44,8 @@ panels = ''.join(read('panel-%s.html' % h) + '\n' for h, _ in present)
 html = swap(html, '  <section class="log" id="logSection">', panels + '  <section class="log" id="logSection">')
 html = swap(html, '<script>\n// DSP-START', read('overlays.html') + '\n<script>\n// DSP-START')
 
-scripts = '<script>\n// VX-START\n' + read('core.js') + '// VX-END\n</script>\n<script>\n' + read('ui-shared.js') + '</script>\n'
+core = swap(read('core.js'), '  //@@SECTIONS@@\n', ''.join(read('core-%s.js' % h) for h, _ in present))
+scripts = '<script>\n// VX-START\n' + core + '// VX-END\n</script>\n<script>\n' + read('ui-shared.js') + '</script>\n'
 for h, _ in present:
     scripts += '<script>\n' + read('ui-%s.js' % h) + '</script>\n'
 html = swap(html, '</body>', scripts + '</body>')

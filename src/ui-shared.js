@@ -176,7 +176,7 @@
     const xs = (v) => m.l + ((v - o.x0) / ((o.x1 - o.x0) || 1)) * pw;
     const fy = (v) => (Math.min(o.y1, Math.max(o.y0, v)) - o.y0) / ((o.y1 - o.y0) || 1);
     const ys = (v) => (o.flipY ? m.t + fy(v) * ph : m.t + ph - fy(v) * ph);
-    const col = (c) => T[c] || c || T.trace;
+    const col = (c) => (c && c.startsWith('--') ? getComputedStyle(el).getPropertyValue(c).trim() : T[c] || c || T.trace);
     ctx.font = T.mono; ctx.lineWidth = 1;
     if (o.empty) {
       ctx.strokeStyle = T.rule; ctx.strokeRect(m.l + 0.5, m.t + 0.5, pw - 1, ph - 1);
@@ -235,7 +235,7 @@
       '<dl class="stats">' + (r.stats || []).map(([k, v]) => '<div><dt>' + esc(k) + '</dt><dd class="dd-flex">' + v + '</dd></div>').join('') + '</dl></div>' +
       (r.verdict ? '<p class="verdict" data-q="' + r.verdict.q + '">' + esc(r.verdict.text) + '</p>' : '') +
       '<p class="source"><span class="chip" data-kind="' + (r.example ? 'example' : 'live') + '">' + (r.example ? 'Example result' : 'Your result') + '</span><span>' + esc(r.source || '') + '</span></p>' +
-      '<ul class="warnings">' + (r.warnings || []).map((w) => '<li>' + ICONS.warn + '<span>' + w + '</span></li>').join('') + '</ul>' +
+      '<ul class="warnings">' + (r.warnings || []).map((w) => '<li>' + ICONS.warn + '<span>' + w + '</span></li>').join('') + '</ul>' + (r.extra || '') +
       (r.example || !r.share ? '' : '<div class="copyrow"><button type="button" class="btn-quiet" data-share>Share result</button><span class="copy-msg"></span></div>');
   }
   async function share(text, msgEl, file) {

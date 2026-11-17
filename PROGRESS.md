@@ -6,7 +6,7 @@ This file is removed when the update is merged to `main`.
 
 - [x] 0. Checkpoint set up (branch, this file, scheduled resume check-ins)
 - [x] 1. Shared groundwork: 8-tab navigation, shared helpers
-- [ ] 2. Sleep section (snoring and breathing-pause screening)
+- [x] 2. Sleep section (snoring and breathing-pause screening)
 - [ ] 3. Cough section (cough counter, TB symptom screen, child fast-breathing counter)
 - [ ] 4. Hearing section (pure-tone screening per ear)
 - [ ] 5. Vision section (tumbling E distance and near, colour, Amsler grid)
