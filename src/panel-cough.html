@@ -1,0 +1,122 @@
+  <div class="panel" id="panelCough" role="tabpanel" aria-labelledby="tabCough" hidden>
+    <section class="capture">
+      <div class="capture-main">
+        <h2>Cough counter</h2>
+        <p class="capture-lede">The microphone listens for the sharp burst of a cough and counts them. Counting on several days shows whether a cough is getting better or worse, which helps a doctor more than "I cough a lot".</p>
+        <div class="field-row">
+          <label class="field" for="cgDur">Listen for
+            <select id="cgDur">
+              <option value="600">10 minutes</option>
+              <option value="1800" selected>30 minutes</option>
+              <option value="3600">1 hour</option>
+              <option value="0">Until I stop (overnight)</option>
+            </select>
+          </label>
+        </div>
+        <button type="button" class="btn" id="cgStart">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.3 6.9v6.2l5-3.1z" fill="currentColor"/></svg>
+          Start counting coughs
+        </button>
+        <p class="error" id="cgError" role="alert" hidden></p>
+        <p class="footnote">Only loudness is kept, 50 values a second. No sound is recorded, stored or uploaded. The overnight Sleep recording counts coughs too.</p>
+      </div>
+      <div class="howto-wrap">
+        <p class="howto-title">Setting up</p>
+        <ol class="howto">
+          <li><span>Put the phone <strong>within 2 metres</strong> of the person, microphone (bottom edge) towards them.</span></li>
+          <li><span>A <strong>quiet room</strong> works best. Television, talking and other people coughing make the count less reliable.</span></li>
+          <li><span>Leave the page open. For overnight counting, <strong>plug in the charger</strong>; the screen turns almost black.</span></li>
+          <li><span>To check the count, <strong>tap the button</strong> on screen each time you hear a cough. The result compares your count with the page's.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="readout" aria-live="polite" id="cgReadout"></section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2>Each cough</h2>
+        <p>One dot per cough the page heard, placed by time and by how loud it was above the room's background.</p>
+      </div>
+      <div class="plot plot-fit" id="cgPlot"><canvas aria-label="Coughs over the session, by time and loudness"></canvas></div>
+    </section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2>Day by day</h2>
+        <p>Coughs per hour for each session you have run on this phone. A falling line means the cough is settling.</p>
+      </div>
+      <div class="plot plot-fit" id="cgHist"><canvas aria-label="Coughs per hour across sessions"></canvas></div>
+      <div class="copyrow"><button type="button" class="btn-quiet" id="cgHistShare">Share history</button><button type="button" class="btn-quiet" id="cgHistClear">Clear history</button><span class="copy-msg" id="cgHistMsg"></span></div>
+    </section>
+
+    <section class="card" id="cgTb">
+      <h3>TB symptom check</h3>
+      <p>Based on the signs India's National TB Elimination Programme asks health workers to look for. Tick everything that applies to the person with the cough.</p>
+      <p class="subhead">Symptoms</p>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-tb="main"><span><strong>Cough for 2 weeks or more</strong></span></label></li>
+        <li><label><input type="checkbox" data-tb="main"><span><strong>Fever for 2 weeks or more</strong>, often in the evening</span></label></li>
+        <li><label><input type="checkbox" data-tb="main"><span><strong>Losing weight</strong> without trying</span></label></li>
+        <li><label><input type="checkbox" data-tb="main"><span><strong>Blood</strong> in the phlegm (sputum)</span></label></li>
+        <li><label><input type="checkbox" data-tb="main"><span><strong>Heavy sweating at night</strong></span></label></li>
+        <li><label><input type="checkbox" data-tb="cough"><span>A cough right now, of any length</span></label></li>
+      </ul>
+      <p class="subhead">Higher risk</p>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-tb="risk"><span>Lives or works closely with someone who has TB</span></label></li>
+        <li><label><input type="checkbox" data-tb="risk"><span>Has had TB before</span></label></li>
+        <li><label><input type="checkbox" data-tb="risk"><span>Has HIV or diabetes, or takes medicines that weaken immunity</span></label></li>
+        <li><label><input type="checkbox" data-tb="risk"><span>Very thin or undernourished</span></label></li>
+      </ul>
+      <p class="verdict" id="cgTbOut" data-q="good"></p>
+      <div class="copyrow"><button type="button" class="btn-quiet" id="cgTbShare">Share answers</button><span class="copy-msg"></span></div>
+    </section>
+
+    <section class="card" id="cgRr">
+      <h3>Child breathing count</h3>
+      <p>Fast breathing is the main sign health workers use to spot pneumonia in young children (WHO IMCI). Count while the child is calm or asleep, not crying or feeding: lift the clothes and watch the belly or chest, then tap once for every breath in.</p>
+      <div class="seg" role="radiogroup" aria-label="Age">
+        <input type="radio" name="cgAge" id="cgAge0" value="60"><label for="cgAge0"><b>Under 2 months</b><span>Fast is 60 or more</span></label>
+        <input type="radio" name="cgAge" id="cgAge1" value="50"><label for="cgAge1"><b>2 to 11 months</b><span>Fast is 50 or more</span></label>
+        <input type="radio" name="cgAge" id="cgAge2" value="40" checked><label for="cgAge2"><b>1 to 4 years</b><span>Fast is 40 or more</span></label>
+        <input type="radio" name="cgAge" id="cgAge3" value="30"><label for="cgAge3"><b>Adult</b><span>30 or more is a severe sign</span></label>
+      </div>
+      <button type="button" class="btn" id="cgRrStart">Start 60-second count</button>
+      <p class="subhead">Danger signs: any one means go now</p>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-ds><span>Not able to drink or breastfeed</span></label></li>
+        <li><label><input type="checkbox" data-ds><span>Vomits everything</span></label></li>
+        <li><label><input type="checkbox" data-ds><span>Has had fits (convulsions)</span></label></li>
+        <li><label><input type="checkbox" data-ds><span>Unusually sleepy or hard to wake</span></label></li>
+        <li><label><input type="checkbox" data-ds><span>Lower chest pulls in when breathing in</span></label></li>
+        <li><label><input type="checkbox" data-ds><span>Harsh noise when breathing in while calm (stridor)</span></label></li>
+        <li><label><input type="checkbox" data-ds><span>Blue or grey lips or tongue</span></label></li>
+      </ul>
+      <p class="verdict" id="cgRrOut" data-q="good"></p>
+      <div class="copyrow" id="cgRrShareRow" hidden><button type="button" class="btn-quiet" id="cgRrShare">Share result</button><span class="copy-msg"></span></div>
+    </section>
+
+    <div class="method">
+      <section>
+        <h2>How the page hears a cough</h2>
+        <ol>
+          <li><strong>Two loudness bands.</strong> Fifty times a second the page measures how loud the sound is below and above 1,000 Hz. Nothing else is kept.</li>
+          <li><strong>Background.</strong> The quiet end of the last 30 seconds sets the room's background level.</li>
+          <li><strong>A sharp start.</strong> A cough is a burst of air, so it goes from quiet to full loudness in about 40 milliseconds. Speech builds up more slowly, which is the main way the page tells them apart.</li>
+          <li><strong>Short and fading.</strong> It must last 0.14 to 0.75 seconds and fade after its peak. Claps and knocks are too short; snores, talking and music last too long.</li>
+          <li><strong>Rough sound.</strong> Coughs carry a lot of high-pitched noise compared with voiced speech or snoring.</li>
+          <li><strong>Quiet before.</strong> A cough follows a breath in, so the moment before it is quiet, unless it follows another cough in the same bout.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Limits of this version</h2>
+        <ul>
+          <li>This is a learning tool, not a medical device. The cough rules were tuned on made-up sounds and have not yet been checked against real recordings.</li>
+          <li>Laughing, throat clearing, sneezing and some words can be counted as coughs. Coughs from other people in the room are counted too.</li>
+          <li>Use your own taps to check it, and compare sessions on the same phone in the same room.</li>
+          <li>The TB check and breathing count follow public health guidance, but only a health worker or doctor can diagnose TB or pneumonia.</li>
+        </ul>
+      </section>
+    </div>
+  </div>

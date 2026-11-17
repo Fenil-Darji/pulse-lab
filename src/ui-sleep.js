@@ -38,6 +38,7 @@
         ['Pauses heard', String(r.pauses.length)],
         ['Longest pause', r.pauses.length ? Math.round(r.longest) + ' s' : '–'],
         ['Other noise', Math.round(100 * r.noiseFrac) + '% of the time'],
+        ['Coughs heard', r.coughs == null ? '–' : String(r.coughs)],
         ['Missed', r.gapSec > 60 ? esc(U.fmtDur(r.gapSec)) : 'Nothing']
       ],
       verdict: { q: v.q, text: v.text + ' This is a screening hint, not a diagnosis.' },
@@ -51,6 +52,7 @@
         'Snoring or loud breathing: ' + U.fmtDur(r.snoreSec) + ' (' + Math.round(100 * r.snoreFrac) + '%)',
         'Pauses of 10 s or more: ' + r.pauses.length + (r.assessable ? ' (' + r.pph.toFixed(1) + ' per hour)' : ' (too little sound to judge)'),
         r.pauses.length ? 'Longest pause: ' + Math.round(r.longest) + ' s' : '',
+        r.coughs != null ? 'Coughs heard: ' + r.coughs : '',
         sbSummary(),
         'Phone screening only, not a sleep study.'
       ].filter(Boolean).join('\n')
@@ -114,6 +116,7 @@
     for (let k = 0; k + 1 < d.length; k += 2) {
       R.frames++;
       if (R.skip > 0) { R.skip--; continue; }
+      R.cd.push(d[k], d[k + 1]);
       R.acc += d[k] * d[k] + d[k + 1] * d[k + 1];
       if (++R.accN === 5) { R.env.push(Math.sqrt(R.acc / 5)); R.acc = 0; R.accN = 0; }
     }
@@ -139,7 +142,7 @@
       if (rec > 120 && wall - R.lastAna > 60) {
         R.lastAna = wall;
         const r = S.analyze(Float32Array.from(R.env));
-        $('#slLiveStats').textContent = 'So far: snoring or loud breathing ' + U.fmtDur(r.snoreSec) + ', pauses heard ' + r.pauses.length + '.';
+        $('#slLiveStats').textContent = 'So far: snoring or loud breathing ' + U.fmtDur(r.snoreSec) + ', pauses heard ' + r.pauses.length + ', coughs ' + R.cd.coughs.length + '.';
       }
     }
     const m = missed();
@@ -160,7 +163,7 @@
     try { mic = await openMic(onFrames); }
     catch (e) { Live.close(); showError($('#slError'), e.message); return; }
     if (!Live.isOpen()) { mic.stop(); return; }
-    Object.assign(R, { on: true, mic, env: [], acc: 0, accN: 0, skip: R.delay * 50, frames: 0, tWall: performance.now(), lastAna: 0 });
+    Object.assign(R, { on: true, mic, cd: new VX.cough.Detector(), env: [], acc: 0, accN: 0, skip: R.delay * 50, frames: 0, tWall: performance.now(), lastAna: 0 });
     beep([523, 784]);
     R.timer = setInterval(tick, 1000);
     tick();
@@ -181,6 +184,7 @@
     }
     const r = S.analyze(env);
     r.gapSec = gap;
+    r.coughs = R.cd.coughs.length;
     Object.assign(st, { r, example: false, when: stamp() });
     if (!store.set('sleep-last', { r, when: st.when })) {
       // Too big to keep: drop the detail, keep the summary.
