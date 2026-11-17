@@ -10,7 +10,7 @@ This file is removed when the update is merged to `main`.
 - [x] 3. Cough section (cough counter, TB symptom screen, child fast-breathing counter)
 - [x] 4. Hearing section (pure-tone screening per ear)
 - [x] 5. Vision section (tumbling E distance and near, colour, Amsler grid)
-- [ ] 6. Movement section (tremor, balance, walking, chair-stand fall risk)
+- [x] 6. Movement section (tremor, balance, walking, chair-stand fall risk)
 - [ ] 7. Whole-page test in headless Chrome, merge to main, remove this file
 
 Notes for whoever resumes:

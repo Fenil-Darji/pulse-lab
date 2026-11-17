@@ -518,6 +518,7 @@ select {
     <button type="button" role="tab" id="tabCough" aria-controls="panelCough" aria-selected="false" tabindex="-1">Cough</button>
     <button type="button" role="tab" id="tabHearing" aria-controls="panelHearing" aria-selected="false" tabindex="-1">Hearing</button>
     <button type="button" role="tab" id="tabVision" aria-controls="panelVision" aria-selected="false" tabindex="-1">Vision</button>
+    <button type="button" role="tab" id="tabMovement" aria-controls="panelMovement" aria-selected="false" tabindex="-1">Movement</button>
   </nav>
 
   <div class="panel" id="panelPulse" role="tabpanel" aria-labelledby="tabPulse">
@@ -1283,6 +1284,118 @@ select {
           <li>Results depend on the card match, the distance and the room light. A wrong distance shifts the result by about a line per 25%.</li>
           <li>Phone screens show colours differently, so the colour plates are rougher than printed plates.</li>
           <li>It cannot detect glaucoma, cataract or diabetic eye disease directly. People with diabetes need a yearly eye examination whatever these checks show.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <div class="panel" id="panelMovement" role="tabpanel" aria-labelledby="tabMovement" hidden>
+    <section class="capture">
+      <div class="capture-main">
+        <h2>Movement and fall risk</h2>
+        <p class="capture-lede">The checks a doctor uses to judge the risk of a fall: standing up from a chair, balance, walking, and a timed walk. A tremor check is included too. The phone's motion sensors do the timing and counting, and spoken instructions guide each step.</p>
+        <div class="field-row">
+          <label class="field" for="mvAge">Age
+            <input id="mvAge" class="num-in" type="number" inputmode="numeric" min="18" max="110" placeholder="years">
+          </label>
+          <label class="field" for="mvSex">Sex
+            <select id="mvSex"><option value="f">Woman</option><option value="m">Man</option></select>
+          </label>
+        </div>
+        <p class="error" id="mvError" role="alert" hidden></p>
+      </div>
+      <div class="howto-wrap">
+        <p class="howto-title">Safety first</p>
+        <ol class="howto">
+          <li><span>Have a <strong>helper stand close by</strong> for the balance, chair and walking checks.</span></li>
+          <li><span>Use a <strong>sturdy chair without arms or wheels</strong>, pushed against a wall.</span></li>
+          <li><span>Wear normal shoes, on a dry, flat floor with nothing to trip over.</span></li>
+          <li><span>Turn the phone's volume up to hear the instructions. Stop at once if anything hurts or feels unsafe.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="readout" aria-live="polite" id="mvReadout"></section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2 id="mvPlotTitle">Last recording</h2>
+        <p id="mvPlotNote"></p>
+      </div>
+      <div class="plot plot-fit" id="mvPlot"><canvas aria-label="The last movement recording"></canvas></div>
+    </section>
+
+    <section class="card">
+      <h3>Chair stand, 30 seconds</h3>
+      <p>How many times you can stand up fully and sit down in 30 seconds, arms crossed over the chest. It shows leg strength, one of the strongest signs of fall risk. Put the phone in a <strong>front trouser pocket</strong> and it counts the stands from the angle of the thigh. Without a pocket, the helper taps a button for each stand.</p>
+      <div class="field-row">
+        <label class="field" for="mvChairWhere">Phone
+          <select id="mvChairWhere"><option value="pocket">In a front trouser pocket</option><option value="helper">Not in a pocket: helper taps</option></select>
+        </label>
+      </div>
+      <button type="button" class="btn" id="mvChairStart">Start chair stand</button>
+    </section>
+
+    <section class="card">
+      <h3>Balance, four stances</h3>
+      <p>Hold each stance for 10 seconds: feet side by side, then one foot half a step forward, then heel to toe, then one leg. Hold the phone <strong>flat against your chest with both hands</strong>; it speaks each instruction and notices if you step out. Not holding heel to toe for 10 seconds is a sign of fall risk.</p>
+      <button type="button" class="btn" id="mvBalStart">Start balance check</button>
+    </section>
+
+    <section class="card">
+      <h3>Walking, 30 seconds</h3>
+      <p>Walk at your usual pace for 30 seconds in a corridor or courtyard, turning when you need to. Keep the phone in a <strong>trouser pocket</strong>, or in one hand at your side. The page counts steps and measures how even they are.</p>
+      <button type="button" class="btn" id="mvWalkStart">Start walking check</button>
+    </section>
+
+    <section class="card">
+      <h3>Timed Up and Go</h3>
+      <p>Mark a spot 3 metres from the chair. Sitting back in the chair, the person stands up on "Go", walks at a normal pace to the mark, turns, walks back and sits down. The helper taps Go and Stop. Taking 12 seconds or more is a sign of fall risk.</p>
+      <button type="button" class="btn" id="mvTugStart">Start Timed Up and Go</button>
+    </section>
+
+    <section class="card">
+      <h3>Hand tremor</h3>
+      <p>Hold the phone in one hand for 20 seconds without moving on purpose. The page measures how much the hand shakes and how fast. Test each hand, and both positions if you like.</p>
+      <div class="seg" role="radiogroup" aria-label="Hand">
+        <input type="radio" name="mvHand" id="mvHandR" value="R" checked><label for="mvHandR"><b>Right hand</b><span></span></label>
+        <input type="radio" name="mvHand" id="mvHandL" value="L"><label for="mvHandL"><b>Left hand</b><span></span></label>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Position">
+        <input type="radio" name="mvPos" id="mvPosOut" value="out" checked><label for="mvPosOut"><b>Arm held out</b><span>Straight in front, at shoulder height</span></label>
+        <input type="radio" name="mvPos" id="mvPosRest" value="rest"><label for="mvPosRest"><b>Resting on the lap</b><span>Hand relaxed, phone in the palm</span></label>
+      </div>
+      <button type="button" class="btn" id="mvTremStart">Start tremor check</button>
+    </section>
+
+    <section class="card">
+      <h3>Three key questions</h3>
+      <p>From the CDC's STEADI fall-prevention programme. Answering yes to any of them means a fuller fall-risk check is worthwhile.</p>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-kq><span>Have you fallen in the past year?</span></label></li>
+        <li><label><input type="checkbox" data-kq><span>Do you feel unsteady when standing or walking?</span></label></li>
+        <li><label><input type="checkbox" data-kq><span>Do you worry about falling?</span></label></li>
+      </ul>
+    </section>
+
+    <div class="method">
+      <section>
+        <h2>How the checks work</h2>
+        <ol>
+          <li><strong>Chair stand.</strong> In a trouser pocket the phone lies along the thigh: flat when sitting, upright when standing. Each swing past 60% of the full range counts as a stand. Results are compared with the CDC's below-average scores for people aged 60 and over.</li>
+          <li><strong>Balance.</strong> Held to the chest, the phone feels the body's sway. A tilt of more than 20 degrees or a sudden jolt means a step out. Heel to toe held under 10 seconds is the CDC's fall-risk sign.</li>
+          <li><strong>Walking.</strong> Each step gives a bump in the overall acceleration. The page counts the bumps and compares each stride with the next: identical strides score 1, very uneven ones near 0.</li>
+          <li><strong>Timed Up and Go.</strong> 12 seconds or more is the CDC's fall-risk cut-off.</li>
+          <li><strong>Tremor.</strong> The shake between 2.5 and 14 Hz is split into frequencies. The strongest one is the tremor rate; its size is converted from acceleration to millimetres of movement.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Limits of this version</h2>
+        <ul>
+          <li>This is a learning tool, not a medical device. The movement rules were tuned on made-up recordings and need checking against real ones.</li>
+          <li>Phones report motion at different rates, and some laptops and tablets have no motion sensors at all.</li>
+          <li>A loose pocket, a phone that slides in the hand, or holding it at an angle all change the readings.</li>
+          <li>Tremor size cut-offs here are rough. A tremor can only be diagnosed by a doctor; the page is best for following the same hand over time.</li>
         </ul>
       </section>
     </div>
@@ -3417,7 +3530,8 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     { btn: $('#tabSleep'), panel: $('#panelSleep'), hash: 'sleep' },
     { btn: $('#tabCough'), panel: $('#panelCough'), hash: 'cough' },
     { btn: $('#tabHearing'), panel: $('#panelHearing'), hash: 'hearing' },
-    { btn: $('#tabVision'), panel: $('#panelVision'), hash: 'vision' }
+    { btn: $('#tabVision'), panel: $('#panelVision'), hash: 'vision' },
+    { btn: $('#tabMovement'), panel: $('#panelMovement'), hash: 'movement' }
   ];
   function selectTab(i, focus) {
     tabs.forEach((t, k) => {
@@ -4698,6 +4812,187 @@ registerProcessor('vx-bands', VXBands);`;
     }
 
     return { LEVELS, snellen, heightMm, nPoint, nextLevel, Line, simulate, whoDistance, refer, dec, enc, dichromat, dE, confusion, PLATES, plateColours, colourResult };
+  })();
+
+  // ================= Movement: tremor, balance, chair stands and walking from the motion sensors =================
+  api.movement = (() => {
+    const FS = 50, G = 9.81;
+    // ---------- Uniform sampling and filters ----------
+    function resample(t, v, fs = FS) {
+      const n = t.length < 2 ? 0 : Math.floor((t[t.length - 1] - t[0]) * fs) + 1, out = new Float64Array(n);
+      let j = 0;
+      for (let i = 0; i < n; i++) {
+        const ti = t[0] + i / fs;
+        while (j < t.length - 2 && t[j + 1] < ti) j++;
+        const a = t[j], b = t[j + 1], w = b > a ? Math.min(1, Math.max(0, (ti - a) / (b - a))) : 0;
+        const va = v[j], vb = v[j + 1];
+        out[i] = isFinite(va) && isFinite(vb) ? va + (vb - va) * w : (isFinite(va) ? va : vb);
+      }
+      return out;
+    }
+    function bq(type, f0, fs) {
+      const w = 2 * Math.PI * f0 / fs, c = Math.cos(w), al = Math.sin(w) / (2 * Math.SQRT1_2), a0 = 1 + al;
+      const b0 = (type === 'lp' ? (1 - c) / 2 : (1 + c) / 2), b1 = (type === 'lp' ? 1 - c : -(1 + c));
+      return [b0 / a0, b1 / a0, b0 / a0, -2 * c / a0, (1 - al) / a0];
+    }
+    function run(q, x) {
+      const y = new Float64Array(x.length);
+      let x1 = x[0], x2 = x[0];
+      const dc = (q[0] + q[1] + q[2]) / (1 + q[3] + q[4]);
+      let y1 = x[0] * dc, y2 = y1;
+      for (let i = 0; i < x.length; i++) { const v = q[0] * x[i] + q[1] * x1 + q[2] * x2 - q[3] * y1 - q[4] * y2; x2 = x1; x1 = x[i]; y2 = y1; y1 = v; y[i] = v; }
+      return y;
+    }
+    // Zero-phase: each filter forward and backward.
+    function filt(x, lo, hi, fs = FS) {
+      if (x.length < 4) return Float64Array.from(x);
+      const qs = []; if (lo) qs.push(bq('hp', lo, fs)); if (hi) qs.push(bq('lp', hi, fs));
+      let y = Float64Array.from(x);
+      for (const q of qs) { y = run(q, y); y.reverse(); y = run(q, y); y.reverse(); }
+      return y;
+    }
+    function uniform(s) {
+      const has = (k) => s[k] && s[k].filter((v) => isFinite(v)).length > 0.8 * s[k].length;
+      const o = { n: 0 };
+      for (const k of ['ax', 'ay', 'az', 'lx', 'ly', 'lz']) o[k] = has(k) ? resample(s.t, s[k]) : null;
+      o.n = o.ax ? o.ax.length : 0;
+      return o;
+    }
+    const tilt = (u, hi = 1.5) => {
+      const gx = filt(u.ax, 0, hi), gy = filt(u.ay, 0, hi), gz = filt(u.az, 0, hi);
+      return { gx, gy, gz, ang(ref) { const out = new Float64Array(gx.length); for (let i = 0; i < out.length; i++) { const m = Math.hypot(gx[i], gy[i], gz[i]) || 1; out[i] = Math.acos(Math.max(-1, Math.min(1, (gx[i] * ref[0] + gy[i] * ref[1] + gz[i] * ref[2]) / m))) * 180 / Math.PI; } return out; } };
+    };
+    const meanDir = (T, a, b) => { let x = 0, y = 0, z = 0; for (let i = a; i < b; i++) { x += T.gx[i]; y += T.gy[i]; z += T.gz[i]; } const m = Math.hypot(x, y, z) || 1; return [x / m, y / m, z / m]; };
+    const down = (x, k) => { const o = []; for (let i = 0; i < x.length; i += k) o.push(+x[i].toFixed(3)); return o; };
+
+    // ---------- Tremor ----------
+    function tremor(s) {
+      const u = uniform(s);
+      if (u.n < FS * 8) return null;
+      const axes = u.lx ? [u.lx, u.ly, u.lz] : [u.ax, u.ay, u.az];
+      const skip = FS;
+      const bp = axes.map((x) => filt(x, 2.5, 14).subarray(skip, x.length - skip));
+      const n = bp[0].length, f = [], p = [];
+      for (let fr = 2; fr <= 14.0001; fr += 0.1) {
+        const om = 2 * Math.PI * fr / FS;
+        let pw = 0;
+        for (const y of bp) {
+          let re = 0, im = 0;
+          for (let i = 0; i < n; i++) { const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1)); re += w * y[i] * Math.cos(om * i); im -= w * y[i] * Math.sin(om * i); }
+          pw += re * re + im * im;
+        }
+        f.push(+fr.toFixed(1)); p.push(pw);
+      }
+      let k = 0; for (let i = 1; i < p.length; i++) if (p[i] > p[k]) k = i;
+      const peak = f[k];
+      let near = 0, tot = 0;
+      for (let i = 0; i < f.length; i++) { tot += p[i]; if (Math.abs(f[i] - peak) <= 1) near += p[i]; }
+      let ss = 0; for (let i = 0; i < n; i++) ss += bp[0][i] ** 2 + bp[1][i] ** 2 + bp[2][i] ** 2;
+      const rms = Math.sqrt(ss / n), conc = tot ? near / tot : 0;
+      const dispMm = Math.SQRT2 * rms / Math.pow(2 * Math.PI * peak, 2) * 1000;
+      const level = conc < 0.3 || dispMm < 0.15 ? 'none' : dispMm < 1 ? 'mild' : 'marked';
+      const pm = Math.max(...p) || 1;
+      return { hz: peak, rms, dispMm, conc, level, spec: { f, p: p.map((v) => +(v / pm).toFixed(4)) } };
+    }
+
+    // ---------- Balance (one stance) ----------
+    function balance(s, limit = 10) {
+      const u = uniform(s);
+      if (u.n < FS) return { held: 0, swayDeg: null, lost: null };
+      const T = tilt(u, 3), ref = meanDir(T, 0, Math.min(u.n, FS)), ang = T.ang(ref);
+      const mag = new Float64Array(u.n); for (let i = 0; i < u.n; i++) mag[i] = Math.hypot(u.ax[i], u.ay[i], u.az[i]) - G;
+      const jolt = filt(mag, 0, 5);
+      let lost = null;
+      for (let i = Math.round(0.5 * FS); i < u.n; i++) if (ang[i] > 20 || Math.abs(jolt[i]) > 5) { lost = i / FS; break; }
+      const end = lost == null ? u.n : Math.round(lost * FS);
+      const seg = Array.from(ang.subarray(0, end));
+      return { held: Math.min(limit, lost == null ? u.n / FS : lost), lost, swayDeg: seg.length > FS / 2 ? U.rms(seg) : null, trace: down(ang, 5) };
+    }
+
+    // ---------- Chair stands: thigh tilt with the phone in a front trouser pocket ----------
+    function chairStand(s, secs = 30) {
+      const u = uniform(s);
+      if (u.n < FS * 3) return { count: null, why: 'short' };
+      const T = tilt(u, 1.5), ref = meanDir(T, 0, Math.round(0.8 * FS)), ang = T.ang(ref);
+      const A = U.pct(Array.from(ang), 0.95);
+      if (A < 35) return { count: null, why: 'flat', maxDeg: A, trace: down(ang, 5) };
+      const hi = 0.6 * A, lo = 0.35 * A, stands = [];
+      let armed = true;
+      for (let i = 0; i < u.n && i / FS <= secs + 0.05; i++) {
+        if (armed && ang[i] > hi) { stands.push(i / FS); armed = false; }
+        else if (!armed && ang[i] < lo) armed = true;
+      }
+      return { count: stands.length, stands, maxDeg: A, trace: down(ang, 5) };
+    }
+    // CDC STEADI 30-second chair stand: below-average scores by age band.
+    const CHAIR_NORMS = [[60, 14, 12], [65, 12, 11], [70, 12, 10], [75, 11, 10], [80, 10, 9], [85, 8, 8], [90, 7, 4]];
+    function chairNorm(age, sex) {
+      if (!(age >= 60)) return null;
+      let row = CHAIR_NORMS[0]; for (const r of CHAIR_NORMS) if (age >= r[0]) row = r;
+      return sex === 'f' ? row[2] : row[1];
+    }
+
+    // ---------- Walking: steps and regularity from overall acceleration (works in any pocket) ----------
+    function walking(s) {
+      const u = uniform(s);
+      if (u.n < FS * 10) return null;
+      const mag = new Float64Array(u.n); for (let i = 0; i < u.n; i++) mag[i] = Math.hypot(u.ax[i], u.ay[i], u.az[i]);
+      const y = filt(mag, 0.6, 3.5);
+      const amp = U.pct(Array.from(y, Math.abs), 0.95);
+      if (amp < 0.4) return { steps: 0, still: true, trace: down(y, 5) };
+      const minD = Math.round(0.28 * FS), cand = [];
+      for (let i = 1; i < u.n - 1; i++) if (y[i] > y[i - 1] && y[i] >= y[i + 1] && y[i] > 0.35 * amp) cand.push(i);
+      const steps = [];
+      for (const i of cand) { if (steps.length && i - steps[steps.length - 1] < minD) { if (y[i] > y[steps[steps.length - 1]]) steps[steps.length - 1] = i; } else steps.push(i); }
+      const iv = []; for (let k = 1; k < steps.length; k++) iv.push((steps[k] - steps[k - 1]) / FS);
+      const step = U.median(iv) || 0.55;
+      // Autocorrelation: how alike each step and each stride (two steps) are.
+      const ac = (lag) => { let a = 0, b = 0, c = 0; for (let i = 0; i + lag < u.n; i++) { a += y[i] * y[i + lag]; b += y[i] * y[i]; c += y[i + lag] * y[i + lag]; } return a / Math.sqrt(b * c || 1); };
+      const peakNear = (L) => { let best = -1; for (let lag = Math.round(L * 0.8); lag <= Math.round(L * 1.2); lag++) best = Math.max(best, ac(lag)); return best; };
+      const stepReg = peakNear(step * FS), strideReg = peakNear(2 * step * FS);
+      const cv = iv.length > 3 ? U.sd(iv.filter((v) => v < 2 * step && v > 0.5 * step)) / step : null;
+      return { steps: steps.length, cadence: 60 / step, stepReg, strideReg, cv, stepTimes: steps.map((i) => i / FS), trace: down(y, 5) };
+    }
+
+    // ---------- Made-up recordings, for tests and the example ----------
+    function synth(kind, o = {}) {
+      const r = U.rng(o.seed || 1), dur = o.dur || 30, rate = o.rate || 60, n = Math.round(dur * rate);
+      const s = { t: [], ax: [], ay: [], az: [], lx: [], ly: [], lz: [] };
+      let ph = 0, wrap = 0, sf = 1;
+      for (let i = 0; i < n; i++) {
+        const t = i / rate + 0.002 * r();
+        let g = [0, 0, G], lin = [0.02 * U.gauss(r), 0.02 * U.gauss(r), 0.02 * U.gauss(r)];
+        if (kind === 'tremor') {
+          const a = Math.pow(2 * Math.PI * o.hz, 2) * (o.mm || 0) / 1000;
+          lin[0] += a * Math.sin(2 * Math.PI * o.hz * t); lin[1] += 0.4 * a * Math.sin(2 * Math.PI * o.hz * t + 1);
+          lin[2] += 0.3 * Math.sin(2 * Math.PI * 0.4 * t);
+        } else if (kind === 'chair') {
+          // Thigh swings from flat (sitting) to upright (standing) once per cycle.
+          const cyc = 30 / (o.stands || 12);
+          // Starts seated, as the test does: the first stand begins after 40% of a cycle.
+          const x = ((t + 0.6 * cyc) % cyc) / cyc, up = x < 0.15 ? x / 0.15 : x < 0.45 ? 1 : x < 0.6 ? 1 - (x - 0.45) / 0.15 : 0;
+          const th = (5 + 75 * (0.5 - 0.5 * Math.cos(Math.PI * up))) * Math.PI / 180;
+          g = [G * Math.sin(th), 0, G * Math.cos(th)];
+          lin[0] += 1.2 * Math.sin(2 * Math.PI * t / cyc * 2) * up;
+        } else if (kind === 'walk') {
+          // Each step gets its own length, as in real walking.
+          if (ph >= wrap) { wrap += Math.PI; sf = Math.max(0.5, 1 + (o.jitter || 0.03) * U.gauss(r)); }
+          ph += (2 * Math.PI * (o.cadence || 108) / 60 / rate) / 2 * sf;
+          lin[2] += 2.2 * Math.sin(2 * ph) + 0.8 * Math.sin(4 * ph + 0.5) + (o.limp || 0.3) * Math.sin(ph);
+          lin[0] += 0.8 * Math.sin(ph);
+        } else if (kind === 'balance') {
+          const sway = (o.sway || 1) * Math.PI / 180;
+          const th = sway * Math.sin(2 * Math.PI * 0.3 * t) + (o.stepAt != null && t > o.stepAt ? 0.6 : 0);
+          g = [G * Math.sin(th), 0, G * Math.cos(th)];
+          if (o.stepAt != null && Math.abs(t - o.stepAt) < 0.15) lin[2] += 7;
+        }
+        s.t.push(t); s.ax.push(g[0] + lin[0]); s.ay.push(g[1] + lin[1]); s.az.push(g[2] + lin[2]);
+        s.lx.push(kind === 'tremor' ? lin[0] : NaN); s.ly.push(kind === 'tremor' ? lin[1] : NaN); s.lz.push(kind === 'tremor' ? lin[2] : NaN);
+      }
+      return s;
+    }
+
+    return { FS, uniform, filt, tremor, balance, chairStand, chairNorm, walking, synth };
   })();
 
   return api;
@@ -6036,6 +6331,326 @@ if (typeof module !== 'undefined') module.exports = VX;
   calStatus();
   render();
   onShow('vision', panel, () => {});
+})();
+</script>
+<script>
+// ================= Movement tab =================
+(() => {
+  const { $, esc, stamp, store, openMotion, Live, chart, renderReadout, onShow, showError, beep, buzz, sleepMs } = window.VXUI;
+  const M = VX.movement, U = VX.U;
+  const panel = $('#panelMovement');
+  let data = store.get('movement', {}) || {};
+  const save = () => store.set('movement', data);
+  const EXAMPLE = {
+    age: 72, sex: 'f',
+    chair: { count: 9, auto: 9, taps: null, age: 72, sex: 'f', when: '' },
+    balance: { stages: [{ name: 'Feet side by side', held: 10 }, { name: 'Half step forward', held: 10 }, { name: 'Heel to toe', held: 6.4 }], when: '' },
+    walk: { steps: 48, cadence: 98, strideReg: 0.71, when: '' },
+    tug: { secs: 13.2, when: '' },
+    tremor: { 'R-out': { hz: 8.6, dispMm: 0.08, level: 'none', when: '' } },
+    kq: [true, false, true],
+    last: { kind: 'chair', trace: null }
+  };
+  const real = () => !!(data.chair || data.balance || data.walk || data.tug || data.tremor);
+  const say = (t) => { try { if (!window.speechSynthesis) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 0.95; u.lang = 'en-IN'; speechSynthesis.speak(u); } catch (e) {} };
+
+  // Age, sex and key questions are kept so the person doesn't retype them.
+  if (data.age) $('#mvAge').value = data.age;
+  if (data.sex) $('#mvSex').value = data.sex;
+  $('#mvAge').addEventListener('change', () => { const v = +$('#mvAge').value; data.age = v >= 18 && v <= 110 ? v : null; save(); render(); });
+  $('#mvSex').addEventListener('change', () => { data.sex = $('#mvSex').value; save(); render(); });
+  const kqBoxes = [...panel.querySelectorAll('[data-kq]')];
+  (data.kq || []).forEach((v, i) => { if (kqBoxes[i]) kqBoxes[i].checked = !!v; });
+  kqBoxes.forEach((b) => b.addEventListener('change', () => { data.kq = kqBoxes.map((x) => x.checked); save(); render(); }));
+
+  // ---------- Summary ----------
+  function render() {
+    const ex = !real(), d = ex ? EXAMPLE : data;
+    const age = d.age || (d.chair && d.chair.age), sex = d.sex || 'f';
+    const signs = [], notes = [];
+    let checks = 0;
+    const st = [];
+    if (d.chair) {
+      checks++;
+      const norm = M.chairNorm(d.chair.age || age, d.chair.sex || sex);
+      const n = d.chair.count;
+      if (norm != null && n != null && n < norm) signs.push('fewer chair stands than average for the age (' + n + ', below-average is under ' + norm + ')');
+      st.push(['Chair stand', n == null ? 'Not counted' : n + ' in 30 s' + (norm != null ? ' <span class="footnote">(below average: under ' + norm + ')</span>' : '')]);
+    } else st.push(['Chair stand', '–']);
+    if (d.balance) {
+      checks++;
+      const s = d.balance.stages, tandem = s[2];
+      if (!tandem || tandem.held < 10) signs.push('heel-to-toe stance not held for 10 seconds');
+      const held = s.filter((x) => x.held >= 10).length;
+      st.push(['Balance', held + ' of 4 stances held' + (tandem ? ' <span class="footnote">(heel to toe ' + tandem.held.toFixed(1) + ' s)</span>' : '')]);
+    } else st.push(['Balance', '–']);
+    if (d.tug) {
+      checks++;
+      if (d.tug.secs >= 12) signs.push('Timed Up and Go took ' + d.tug.secs.toFixed(1) + ' seconds (12 or more is a risk sign)');
+      st.push(['Timed Up and Go', d.tug.secs.toFixed(1) + ' s']);
+    } else st.push(['Timed Up and Go', '–']);
+    if (d.walk) {
+      const reg = d.walk.strideReg;
+      if (reg < 0.5) notes.push('Walking rhythm was uneven (stride evenness ' + reg.toFixed(2) + ' of 1). Unsteady walking is worth mentioning to a doctor, especially with other fall-risk signs.');
+      st.push(['Walking', Math.round(d.walk.cadence) + ' steps a minute · evenness ' + reg.toFixed(2)]);
+    } else st.push(['Walking', '–']);
+    const trem = d.tremor || {};
+    for (const h of ['R', 'L']) {
+      const t = trem[h + '-out'] || trem[h + '-rest'];
+      const which = trem[h + '-out'] ? 'arm out' : 'at rest';
+      st.push([(h === 'R' ? 'Right' : 'Left') + ' hand tremor', t ? (t.level === 'none' ? 'None clear' : t.dispMm.toFixed(1) + ' mm at ' + t.hz.toFixed(1) + ' Hz') + ' <span class="footnote">(' + which + ')</span>' : '–']);
+      for (const pos of ['out', 'rest']) {
+        const x = trem[h + '-' + pos];
+        if (x && x.level !== 'none') notes.push('A ' + (x.level === 'marked' ? 'clear' : 'small but noticeable') + ' tremor in the ' + (h === 'R' ? 'right' : 'left') + ' hand (' + (pos === 'out' ? 'arm held out' : 'resting') + '): about ' + x.dispMm.toFixed(1) + ' mm at ' + x.hz.toFixed(1) + ' Hz. Many tremors are harmless, but a slow tremor at rest (4 to 6 Hz), or one that is getting worse, should be checked by a doctor.');
+      }
+    }
+    const kq = (d.kq || []).filter(Boolean).length;
+    if (kq) signs.push('yes to ' + kq + ' of the 3 key questions');
+    st.push(['Key questions', kq + ' of 3 answered yes']);
+    let verdict = null;
+    if (signs.length) verdict = { q: 'poor', text: 'Signs of higher fall risk: ' + signs.join('; ') + '. Talk to a doctor or health worker. Strength and balance exercises, a review of medicines and eyesight, and removing trip hazards at home all reduce falls.' };
+    else if (checks) verdict = { q: 'good', text: 'No fall-risk signs in the checks that were run.' };
+    if (notes.length) verdict = { q: verdict && verdict.q === 'poor' ? 'poor' : 'fair', text: ((verdict ? verdict.text + ' ' : '') + notes.join(' ')) };
+    if (verdict) verdict.text += ' This is a screening check, not a diagnosis.';
+    renderReadout($('#mvReadout'), {
+      label: 'Fall risk',
+      value: !checks && !kq ? 'Not checked yet' : signs.length ? 'Higher fall risk' : 'No signs found',
+      small: true, unit: '',
+      sub: checks ? signs.length + ' risk sign' + (signs.length === 1 ? '' : 's') + ' across ' + checks + ' timed check' + (checks === 1 ? '' : 's') + (age ? ' · age ' + age : '') : 'Run any check below',
+      stats: st, verdict, example: ex,
+      source: ex ? 'A made-up result for a 72-year-old woman, shown until you run a check.' : 'Your latest result for each check, kept on this phone only.',
+      warnings: !ex && d.chair && !(d.chair.age || age) ? ['Enter the age above to compare the chair stand with the CDC averages for people aged 60 and over.'] : [],
+      extra: ex ? '' : '<p class="source"><button type="button" class="textbtn" id="mvClearBtn">Clear movement results</button></p>',
+      share: ex ? '' : ['Phone Vitals Lab: movement and fall-risk check, ' + stamp() + (age ? ', age ' + age : '')].concat(st.map(([k, v]) => k + ': ' + v.replace(/<[^>]+>/g, ''))).concat([verdict ? verdict.text : '']).filter(Boolean).join('\n')
+    });
+    const b = $('#mvClearBtn');
+    if (b) b.addEventListener('click', () => { data = { age: data.age, sex: data.sex, kq: data.kq }; save(); render(); draw(); });
+  }
+
+  function draw() {
+    const last = real() ? data.last : null, el = $('#mvPlot');
+    const note = (t, s) => { $('#mvPlotTitle').textContent = t; $('#mvPlotNote').textContent = s; };
+    if (!last || (!last.trace && !last.spec)) { note('Last recording', 'The motion recorded in your last check appears here.'); chart(el, { height: 170, x0: 0, x1: 1, y0: 0, y1: 1, empty: 'Run a check to see its recording' }); return; }
+    if (last.kind === 'tremor') {
+      note('Tremor by frequency', 'How strong the shake was at each rate. A tall, narrow peak is a true tremor; a low, flat line means no clear tremor.');
+      const f = last.spec.f, p = last.spec.p;
+      chart(el, { height: 180, x0: 2, x1: 14, y0: 0, y1: 1, xTicks: [2, 4, 6, 8, 10, 12, 14].map((v) => [v, v + (v === 14 ? ' Hz' : '')]), series: [{ x: f, y: p, color: 'trace', width: 2 }], marks: [{ x: last.hz, y: p[f.indexOf(last.hz)] || 1 }] });
+      return;
+    }
+    const y = last.trace, x = y.map((_, i) => i / 10), dur = x[x.length - 1] || 1;
+    const xt = []; for (let t = 0; t <= dur + 1e-6; t += dur > 20 ? 5 : 2) xt.push([t, t ? t + ' s' : '0']);
+    const lo = Math.min(...y), hi = Math.max(...y), pad = (hi - lo) * 0.1 || 1;
+    const opt = { height: 180, x0: 0, x1: dur, y0: lo - pad, y1: hi + pad, xTicks: xt, series: [{ x, y, color: 'trace', width: 1.6 }] };
+    if (last.kind === 'chair') { note('Thigh angle during the chair stand', 'Up is standing, down is sitting. Each dot is one counted stand.'); opt.y0 = 0; opt.y1 = Math.max(90, hi); opt.yTicks = [[0, '0°'], [45, '45°'], [90, '90°']]; opt.marks = (last.marks || []).map((t) => ({ x: t, y: y[Math.min(y.length - 1, Math.round(t * 10))] })); }
+    else if (last.kind === 'walk') { note('Walking rhythm', 'Each bump is a step. Even bumps mean even steps.'); opt.marks = (last.marks || []).map((t) => ({ x: t, y: y[Math.min(y.length - 1, Math.round(t * 10))] })); }
+    else if (last.kind === 'balance') { note('Body sway in the last stance', 'Tilt of the chest away from the starting position. A sudden rise means a step out.'); opt.y0 = 0; opt.yTicks = [[0, '0°'], [Math.round(hi / 2), Math.round(hi / 2) + '°'], [Math.round(hi), Math.round(hi) + '°']]; }
+    chart(el, opt);
+  }
+
+  // ---------- Live helpers ----------
+  function session(chip) {
+    const s = { alive: true, motion: null };
+    s.quit = (msg) => {
+      if (!s.alive) return;
+      s.alive = false;
+      if (s.motion) s.motion.stop();
+      try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+      Live.close();
+      if (msg) showError($('#mvError'), msg);
+    };
+    Live.open({ chip, status: '', noBar: true, onStop: () => s.quit(), onHidden: () => s.quit('The check stopped because the page went to the background.') });
+    s.choose = (html, buttons) => new Promise((resolve) => {
+      Live.stage.innerHTML = html + '<div class="btn-row">' + buttons.map((b, i) => '<button type="button" class="bigbtn' + (b.quiet ? ' quiet' : '') + '" data-i="' + i + '" style="min-height: 72px; font-size: 18px">' + esc(b.label) + '</button>').join('') + '</div>';
+      Live.stage.querySelectorAll('[data-i]').forEach((el) => el.addEventListener('click', () => resolve(buttons[+el.dataset.i].value)));
+      const iv = setInterval(() => { if (!s.alive) { clearInterval(iv); resolve(null); } }, 200);
+    });
+    s.wait = async (ms) => { const end = performance.now() + ms; while (s.alive && performance.now() < end) await sleepMs(Math.min(100, end - performance.now())); return s.alive; };
+    return s;
+  }
+  // Starts the motion sensors at once (so the permission prompt belongs to the tap), buffering everything.
+  async function motion(s) {
+    const b = { t: [], ax: [], ay: [], az: [], lx: [], ly: [], lz: [] };
+    s.motion = await openMotion((t, ax, ay, az, lx, ly, lz) => { b.t.push(t); b.ax.push(ax); b.ay.push(ay); b.az.push(az); b.lx.push(lx); b.ly.push(ly); b.lz.push(lz); });
+    return {
+      now: () => (b.t.length ? b.t[b.t.length - 1] : 0),
+      count: () => b.t.length,
+      since(t0, t1 = Infinity) {
+        let i = 0; while (i < b.t.length && b.t[i] < t0) i++;
+        let j = i; while (j < b.t.length && b.t[j] <= t1) j++;
+        const o = {}; for (const k in b) o[k] = b[k].slice(i, j);
+        o.t = o.t.map((v) => v - t0);
+        return o;
+      }
+    };
+  }
+  async function begin(s) {
+    let m;
+    try { m = await motion(s); } catch (e) { s.quit(e.message); return null; }
+    if (!(await s.wait(1200))) return null;
+    if (m.count() < 10) { s.quit('No motion readings came from this device. Most laptops have no motion sensors; try on a phone.'); return null; }
+    return m;
+  }
+  async function go(s, n, words) {
+    for (let k = n; k > 0; k--) {
+      if (!s.alive) return false;
+      Live.status(words + ' ' + k);
+      beep(660, 0.09);
+      await sleepMs(1000);
+    }
+    if (!s.alive) return false;
+    beep([880, 1175], 0.14); buzz(200); say('Go');
+    return true;
+  }
+  const finish = (s, key, rec, last) => { s.quit(); data[key] = rec; if (last) data.last = last; save(); render(); draw(); $('#mvReadout').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const age = () => { const v = +$('#mvAge').value; return v >= 18 && v <= 110 ? v : null; };
+
+  // ---------- Chair stand ----------
+  $('#mvChairStart').addEventListener('click', async () => {
+    showError($('#mvError'), '');
+    const pocket = $('#mvChairWhere').value === 'pocket';
+    const s = session('Chair stand');
+    const m = await begin(s);
+    if (!m) return;
+    say('Sit in the middle of the chair, feet flat, arms crossed over your chest.');
+    if ((await s.choose('<p class="live-note" style="font-size: 16px">Sit in the middle of the chair, back straight, feet flat, <strong>arms crossed over the chest</strong>.' + (pocket ? ' Phone in the front trouser pocket.' : '') + ' On "Go", stand up fully and sit back down, as many times as possible in 30 seconds. The helper presses Ready.</p>', [{ label: 'Ready', value: 1 }])) == null) return;
+    let taps = 0;
+    Live.stage.innerHTML = '<div class="live-hero"><span class="hero-val"><span class="hero-num" id="mvChairN">0</span><span class="hero-unit">stands</span></span></div>' +
+      '<button type="button" class="bigbtn quiet" id="mvChairTap">Helper: tap at each full stand<br><span class="footnote" id="mvChairTapN">Taps: 0</span></button>';
+    $('#mvChairTap').addEventListener('click', () => { taps++; $('#mvChairTapN').textContent = 'Taps: ' + taps; buzz(10); if (!pocket) $('#mvChairN').textContent = taps; });
+    if (!(await go(s, 3, 'Starting in'))) return;
+    const t0 = m.now();
+    let half = false;
+    while (s.alive) {
+      const el = m.now() - t0;
+      if (el >= 30) break;
+      Live.timer(Math.ceil(30 - el) + ' s');
+      Live.status('Stand up and sit down, as fast as is safe.');
+      if (pocket && el > 2) { const c = M.chairStand(m.since(t0 - 0.8), 30); if (c.count != null) $('#mvChairN').textContent = c.count; }
+      if (!half && el >= 15) { half = true; say('Halfway'); }
+      await sleepMs(250);
+    }
+    if (!s.alive) return;
+    beep([1175, 880], 0.2); say('Stop. Sit down and rest.');
+    const seg = m.since(t0 - 0.8, t0 + 30.2), c = pocket ? M.chairStand(seg, 30.8) : { count: null };
+    // The count includes the 0.8 s seated lead-in before Go.
+    const auto = c.count, count = pocket && auto != null ? auto : (taps || null);
+    finish(s, 'chair', { count, auto, taps: taps || null, pocket, age: age(), sex: $('#mvSex').value, when: stamp() },
+      c.trace ? { kind: 'chair', trace: c.trace, marks: (c.stands || []) } : null);
+    if (pocket && auto == null) showError($('#mvError'), 'The phone did not swing between sitting and standing, so stands could not be counted from it' + (taps ? '; the helper\'s taps were used instead.' : '. Was it in a front trouser pocket?'));
+  });
+
+  // ---------- Balance ----------
+  const STANCES = [
+    { name: 'Feet side by side', say: 'Stand with your feet side by side, touching.' },
+    { name: 'Half step forward', say: 'Move one foot forward so its instep touches the big toe of the other foot.' },
+    { name: 'Heel to toe', say: 'Put one foot directly in front of the other, heel touching toe.' },
+    { name: 'One leg', say: 'Stand on one leg.' }
+  ];
+  $('#mvBalStart').addEventListener('click', async () => {
+    showError($('#mvError'), '');
+    const s = session('Balance');
+    const m = await begin(s);
+    if (!m) return;
+    if ((await s.choose('<p class="live-note" style="font-size: 16px">Hold the phone <strong>flat against your chest with both hands</strong>. The helper stands close by, ready to steady you. Listen for each instruction; get into position, then hold still until you hear the high beep.</p>', [{ label: 'Start', value: 1 }])) == null) return;
+    const stages = [];
+    let lastTrace = null;
+    for (let k = 0; k < STANCES.length && s.alive; k++) {
+      const S = STANCES[k];
+      let lostByHelper = null;
+      Live.stage.innerHTML = '<div class="live-hero"><span class="hero-val"><span class="hero-num sm" id="mvBalName">' + esc(S.name) + '</span></span></div>' +
+        '<button type="button" class="bigbtn quiet" id="mvBalLost">Helper: tap if they step or grab</button>';
+      say(S.say + ' Get ready.');
+      Live.status('Stance ' + (k + 1) + ' of 4: get into position');
+      if (!(await s.wait(5500))) return;
+      if (!(await go(s, 3, 'Hold still in'))) return;
+      const t0 = m.now();
+      $('#mvBalLost').addEventListener('click', () => { if (lostByHelper == null) { lostByHelper = m.now() - t0; buzz(80); } });
+      let res = null;
+      while (s.alive) {
+        const el = m.now() - t0;
+        Live.timer(Math.max(0, 10 - el).toFixed(0) + ' s');
+        Live.status('Stance ' + (k + 1) + ' of 4: hold still');
+        if (el > 1) { res = M.balance(m.since(t0, t0 + 10)); if (res.lost != null) break; }
+        if (lostByHelper != null || el >= 10) break;
+        await sleepMs(200);
+      }
+      if (!s.alive) return;
+      res = M.balance(m.since(t0, t0 + 10));
+      const held = Math.min(10, lostByHelper != null ? lostByHelper : res.held);
+      stages.push({ name: S.name, held, sway: res.swayDeg });
+      lastTrace = res.trace;
+      if (held < 10) { beep(330, 0.4); say('Stop. Stand normally.'); break; }
+      beep([880, 1175], 0.14); say('Good. Relax.');
+      if (!(await s.wait(1500))) return;
+    }
+    if (!s.alive) return;
+    finish(s, 'balance', { stages, when: stamp() }, lastTrace ? { kind: 'balance', trace: lastTrace } : null);
+  });
+
+  // ---------- Walking ----------
+  $('#mvWalkStart').addEventListener('click', async () => {
+    showError($('#mvError'), '');
+    const s = session('Walking');
+    const m = await begin(s);
+    if (!m) return;
+    if ((await s.choose('<p class="live-note" style="font-size: 16px">Press Start, then put the phone in a <strong>trouser pocket</strong>, or hold it in one hand at your side. After the countdown, walk at your usual pace for 30 seconds, turning when you need to. Two beeps mean stop.</p>', [{ label: 'Start', value: 1 }])) == null) return;
+    say('Put the phone in your pocket. Start walking when you hear go.');
+    if (!(await go(s, 6, 'Walk in'))) return;
+    const t0 = m.now();
+    while (s.alive) { const el = m.now() - t0; if (el >= 30) break; Live.timer(Math.ceil(30 - el) + ' s'); Live.status('Walk at your usual pace'); await sleepMs(250); }
+    if (!s.alive) return;
+    beep([1175, 880], 0.2); buzz([200, 100, 200]); say('Stop.');
+    const w = M.walking(m.since(t0, t0 + 30));
+    if (!w || w.still || w.steps < 10) { s.quit('Hardly any steps were picked up. Keep the phone in a pocket or firmly in your hand, and walk for the whole 30 seconds.'); return; }
+    finish(s, 'walk', { steps: w.steps, cadence: w.cadence, strideReg: w.strideReg, when: stamp() }, { kind: 'walk', trace: w.trace.slice(0, 150), marks: w.stepTimes.filter((t) => t < 15) });
+  });
+
+  // ---------- Timed Up and Go ----------
+  $('#mvTugStart').addEventListener('click', async () => {
+    showError($('#mvError'), '');
+    const s = session('Timed Up and Go');
+    if ((await s.choose('<p class="live-note" style="font-size: 16px">The person sits back in the chair, with the 3-metre mark ready. Tap Go and say "Go". Tap Stop the moment they are seated again.</p>', [{ label: 'Go', value: 1 }])) == null) return;
+    beep([880, 1175], 0.14); say('Go');
+    const t0 = performance.now();
+    let stopped = false;
+    Live.stage.innerHTML = '<div class="live-hero"><span class="hero-val"><span class="hero-num" id="mvTugT">0.0</span><span class="hero-unit">seconds</span></span></div><button type="button" class="bigbtn" id="mvTugStop" style="min-height: 40vh">Seated again: stop</button>';
+    $('#mvTugStop').addEventListener('click', () => { stopped = true; });
+    while (s.alive && !stopped) { $('#mvTugT').textContent = ((performance.now() - t0) / 1000).toFixed(1); Live.status('Walk to the mark, turn, come back and sit'); await sleepMs(50); }
+    if (!s.alive) return;
+    const secs = (performance.now() - t0) / 1000;
+    beep(660, 0.15);
+    finish(s, 'tug', { secs, when: stamp() }, null);
+  });
+
+  // ---------- Tremor ----------
+  $('#mvTremStart').addEventListener('click', async () => {
+    showError($('#mvError'), '');
+    const hand = panel.querySelector('[name="mvHand"]:checked').value, pos = panel.querySelector('[name="mvPos"]:checked').value;
+    const s = session('Tremor');
+    const m = await begin(s);
+    if (!m) return;
+    const how = pos === 'out' ? 'Hold the phone in your ' + (hand === 'R' ? 'right' : 'left') + ' hand with the arm straight out in front, at shoulder height.' : 'Rest your ' + (hand === 'R' ? 'right' : 'left') + ' forearm on your lap with the phone in your relaxed palm.';
+    say(how);
+    if ((await s.choose('<p class="live-note" style="font-size: 16px">' + how + ' Keep still and breathe normally for 20 seconds. Don\'t grip hard.</p>', [{ label: 'Start', value: 1 }])) == null) return;
+    if (!(await go(s, 3, 'Hold still in'))) return;
+    const t0 = m.now() + 1;
+    Live.stage.innerHTML = '<p class="live-note" style="font-size: 16px">' + esc(how) + '</p>';
+    while (s.alive) { const el = m.now() - t0; if (el >= 20) break; Live.timer(Math.ceil(Math.min(21, 20 - el)) + ' s'); Live.status('Hold still'); await sleepMs(250); }
+    if (!s.alive) return;
+    beep([1175, 880], 0.2); say('Done. Relax.');
+    const r = M.tremor(m.since(t0, t0 + 20));
+    if (!r) { s.quit('Too few motion readings to measure a tremor. Try again.'); return; }
+    data.tremor = data.tremor || {};
+    const rec = { hz: r.hz, dispMm: r.dispMm, rms: r.rms, level: r.level, when: stamp() };
+    s.quit();
+    data.tremor[hand + '-' + pos] = rec;
+    data.last = { kind: 'tremor', spec: r.spec, hz: r.hz };
+    save(); render(); draw();
+    $('#mvReadout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  render();
+  onShow('movement', panel, draw);
 })();
 </script>
 </body>
