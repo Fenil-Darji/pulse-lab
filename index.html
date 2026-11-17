@@ -516,6 +516,7 @@ select {
     <button type="button" role="tab" id="tabPosture" aria-controls="panelPosture" aria-selected="false" tabindex="-1">Posture</button>
     <button type="button" role="tab" id="tabSleep" aria-controls="panelSleep" aria-selected="false" tabindex="-1">Sleep</button>
     <button type="button" role="tab" id="tabCough" aria-controls="panelCough" aria-selected="false" tabindex="-1">Cough</button>
+    <button type="button" role="tab" id="tabHearing" aria-controls="panelHearing" aria-selected="false" tabindex="-1">Hearing</button>
   </nav>
 
   <div class="panel" id="panelPulse" role="tabpanel" aria-labelledby="tabPulse">
@@ -1117,6 +1118,78 @@ select {
           <li>Laughing, throat clearing, sneezing and some words can be counted as coughs. Coughs from other people in the room are counted too.</li>
           <li>Use your own taps to check it, and compare sessions on the same phone in the same room.</li>
           <li>The TB check and breathing count follow public health guidance, but only a health worker or doctor can diagnose TB or pneumonia.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <div class="panel" id="panelHearing" role="tabpanel" aria-labelledby="tabHearing" hidden>
+    <section class="capture">
+      <div class="capture-main">
+        <h2>Tone hearing check</h2>
+        <p class="capture-lede">Beeps play in one ear at a time, getting quieter, and you tap whenever you hear one. The page finds the quietest beep each ear hears at five pitches, from low (500 Hz) to high (6,000 Hz). It takes about 5 minutes.</p>
+        <p class="notice" id="hrRefStatus"></p>
+        <label class="field" for="hrPhones">Earphones used (optional, to match the reference)
+          <input id="hrPhones" class="num-in" style="width: 100%" type="text" maxlength="40" placeholder="e.g. white wired earphones">
+        </label>
+        <button type="button" class="btn" id="hrStart">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 11V9a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="10.5" width="3.4" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="13.6" y="10.5" width="3.4" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+          Start hearing check
+        </button>
+        <p class="error" id="hrError" role="alert" hidden></p>
+      </div>
+      <div class="howto-wrap">
+        <p class="howto-title">Before you start</p>
+        <ol class="howto">
+          <li><span>Find the <strong>quietest room</strong> you can. Switch off fans, coolers and the television.</span></li>
+          <li><span>Use <strong>earphones or headphones</strong>, right side in the right ear. Wired ones are best; Bluetooth works if you always use the same pair.</span></li>
+          <li><span>Turn the <strong>media volume to maximum</strong> and accept the volume warning. The beeps start quiet and are never louder than a normal conversation would be at that volume.</span></li>
+          <li><span>Tap the big button <strong>every time you hear a beep</strong>, however faint. Don't guess when you hear nothing.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="readout" aria-live="polite" id="hrReadout"></section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2>Your hearing by pitch</h2>
+        <p id="hrChartNote">Higher on the chart means the ear heard quieter beeps. Low pitches are on the left, high pitches on the right.</p>
+      </div>
+      <div class="plot plot-fit" id="hrPlot"><canvas aria-label="Quietest beep heard at each pitch, for each ear"></canvas></div>
+      <div class="legend"><span><i style="background: var(--accent); border-radius: 50%"></i>Right ear</span><span><i style="background: var(--trace); border-radius: 50%"></i>Left ear</span></div>
+    </section>
+
+    <section class="card" id="hrRefCard">
+      <h3>Reference listener</h3>
+      <p>Phones and earphones play the same beep at different loudness, so the page cannot know on its own what counts as normal. Test a <strong>young family member (under 25) with good hearing</strong> once, with the same phone, earphones and maximum volume, and save their result as the reference. After that, everyone's result is compared with theirs and given a hearing grade.</p>
+      <div class="copyrow">
+        <button type="button" class="btn-quiet" id="hrRefSave">Use the last result as the reference</button>
+        <button type="button" class="btn-quiet" id="hrRefClear">Remove the reference</button>
+        <span class="copy-msg" id="hrRefMsg"></span>
+      </div>
+    </section>
+
+    <div class="method">
+      <section>
+        <h2>How the page tests hearing</h2>
+        <ol>
+          <li><strong>Ear check.</strong> One beep in each ear first, to make sure the earphones are the right way round and both sides work.</li>
+          <li><strong>Pulsed beeps.</strong> Each beep is three short pulses, which are easier to notice than one long tone and are not confused with ringing in the ears.</li>
+          <li><strong>Down 10, up 5.</strong> After every beep you hear, the next is 10 dB quieter; after every miss, 5 dB louder. The quietest level heard twice on the way up is that ear's threshold. Audiologists use the same steps.</li>
+          <li><strong>Random gaps and blank turns.</strong> Beeps come at irregular moments, and now and then nothing plays, to catch taps that are guesses.</li>
+          <li><strong>Repeat.</strong> The first pitch is tested again at the end of the right ear to see how steady the answers are.</li>
+          <li><strong>Grade.</strong> With a reference, the average over 500, 1,000, 2,000 and 4,000 Hz in the better ear is graded on the WHO scale: under 20 dB normal, 20 to 34 mild, 35 to 49 moderate, 50 to 64 moderately severe, 65 to 79 severe, 80 and above profound.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Limits of this version</h2>
+        <ul>
+          <li>This is a learning tool, not a medical device, and not a substitute for a test by an audiologist.</li>
+          <li>The grade is only as good as the reference. A reference with an undiscovered hearing problem makes everyone look better than they are.</li>
+          <li>Background noise, loose earphones and a phone that lowers its volume on its own all raise the thresholds.</li>
+          <li>The left-right comparison does not need a reference, but cheap earphones can be a few dB louder on one side.</li>
+          <li>It does not test understanding speech in noise, which is often the first thing people notice.</li>
         </ul>
       </section>
     </div>
@@ -3249,7 +3322,8 @@ registerProcessor('phone-vitals-sonar', PhoneVitalsSonar);
     { btn: $('#tabBreath'), panel: $('#panelBreath'), hash: 'breathing' },
     { btn: $('#tabPosture'), panel: $('#panelPosture'), hash: 'posture' },
     { btn: $('#tabSleep'), panel: $('#panelSleep'), hash: 'sleep' },
-    { btn: $('#tabCough'), panel: $('#panelCough'), hash: 'cough' }
+    { btn: $('#tabCough'), panel: $('#panelCough'), hash: 'cough' },
+    { btn: $('#tabHearing'), panel: $('#panelHearing'), hash: 'hearing' }
   ];
   function selectTab(i, focus) {
     tabs.forEach((t, k) => {
@@ -4303,6 +4377,103 @@ registerProcessor('vx-bands', VXBands);`;
     return { FR, Detector, analyze, summarize, synth, BOUT };
   })();
 
+  // ================= Hearing: pure-tone thresholds by the ascending method =================
+  api.hearing = (() => {
+    const FREQS = [1000, 2000, 4000, 6000, 500];   // test order, starting at 1 kHz as audiologists do
+    const PTA = [500, 1000, 2000, 4000];            // the four frequencies WHO averages
+    const MIN = -100, MAX = -15;                    // dB relative to full volume
+    // WHO World Report on Hearing (2021): grade by the better ear's average over 500, 1000, 2000 and 4000 Hz.
+    const GRADES = [[20, 'Normal hearing', 'good'], [35, 'Mild hearing loss', 'fair'], [50, 'Moderate hearing loss', 'poor'],
+      [65, 'Moderately severe hearing loss', 'poor'], [80, 'Severe hearing loss', 'poor'], [95, 'Profound hearing loss', 'poor'], [Infinity, 'Complete hearing loss', 'poor']];
+
+    // Down 10 dB after each tone heard, up 5 dB after each miss; the threshold is the quietest level heard twice on the way up.
+    function Staircase(start) {
+      let lvl = Math.max(MIN, Math.min(MAX, Math.round(start / 5) * 5)), up = false, trials = 0, done = false, thr = null, topMiss = 0;
+      const asc = [];
+      const end = (v) => { done = true; thr = v; };
+      return {
+        level: () => lvl, done: () => done, threshold: () => thr, trials: () => trials,
+        answer(heard) {
+          if (done) return;
+          trials++;
+          if (!up) {
+            if (heard) { if (lvl <= MIN) return end(MIN); lvl = Math.max(MIN, lvl - 10); }
+            else { up = true; lvl = Math.min(MAX, lvl + 5); }
+          } else if (heard) {
+            asc.push(lvl);
+            if (asc.filter((v) => v === lvl).length >= 2) return end(lvl);
+            if (asc.length >= 3) return end(U.median(asc));
+            lvl = Math.max(MIN, lvl - 10);
+          } else {
+            if (lvl >= MAX && ++topMiss >= 2) return end(null);
+            lvl = Math.min(MAX, lvl + 5);
+          }
+          if (trials >= 18) end(asc.length ? U.median(asc) : null);
+        }
+      };
+    }
+
+    function grade(pta) { for (const g of GRADES) if (pta < g[0]) return { name: g[1], q: g[2] }; return null; }
+    const avg = (ear, fs) => { const v = fs.map((f) => ear[f]); return v.some((x) => x == null) ? null : U.mean(v); };
+
+    // res: { R: {freq: dB or null}, L: {...} }  ref: {freq: dB} from a listener with good hearing, or null
+    function summarize(res, ref) {
+      const out = { ears: {}, diffs: {}, flags: [] };
+      for (const e of ['R', 'L']) {
+        const raw = res[e] || {};
+        const rel = {};
+        if (ref) for (const f of FREQS) rel[f] = raw[f] == null || ref[f] == null ? null : Math.max(0, raw[f] - ref[f]);
+        out.ears[e] = { raw, rel: ref ? rel : null, pta: ref ? avg(rel, PTA) : null, notHeard: FREQS.filter((f) => f in raw && raw[f] == null) };
+      }
+      let big = 0;
+      const ds = [];
+      for (const f of FREQS) {
+        const a = res.R && res.R[f], b = res.L && res.L[f];
+        const ta = a == null ? MAX + 10 : a, tb = b == null ? MAX + 10 : b;
+        if ((res.R && f in res.R) && (res.L && f in res.L)) { out.diffs[f] = ta - tb; ds.push(ta - tb); if (Math.abs(ta - tb) >= 20) big++; }
+      }
+      const pd = PTA.filter((f) => f in out.diffs).map((f) => out.diffs[f]);
+      out.earDiff = pd.length ? U.mean(pd) : null;                   // positive: right ear needs louder tones
+      out.asym = out.earDiff != null && (Math.abs(out.earDiff) >= 15 || big >= 2);
+      out.worseEar = out.earDiff == null ? null : (out.earDiff > 0 ? 'R' : 'L');
+      if (ref) {
+        const pr = out.ears.R.pta, pl = out.ears.L.pta;
+        const anyNotHeard = out.ears.R.notHeard.length || out.ears.L.notHeard.length;
+        const better = pr == null ? pl : pl == null ? pr : Math.min(pr, pl);
+        const worse = pr == null || pl == null ? null : Math.max(pr, pl);
+        out.better = better; out.worse = worse;
+        out.grade = better != null ? grade(better) : (anyNotHeard ? { name: 'Some tones not heard at full volume', q: 'poor' } : null);
+        out.unilateral = better != null && worse != null && better < 20 && worse >= 35;
+      }
+      return out;
+    }
+
+    // Reference from a listener with good hearing: the average of both ears at each frequency.
+    function makeRef(res) {
+      const ref = {}, warn = [];
+      for (const f of FREQS) {
+        const a = res.R && res.R[f], b = res.L && res.L[f];
+        if (a == null || b == null) { warn.push(f); continue; }
+        if (Math.abs(a - b) >= 15) warn.push(f);
+        ref[f] = (a + b) / 2;
+      }
+      return { ref, ok: Object.keys(ref).length === FREQS.length && warn.length === 0, warn };
+    }
+
+    // Simulated listener, for tests and the example.
+    function listener(T, o = {}) {
+      const r = U.rng(o.seed || 1), s = o.slope || 1.5, fa = o.fa == null ? 0.03 : o.fa, lapse = o.lapse == null ? 0.03 : o.lapse;
+      return (lvl) => (r() < fa ? true : r() < lapse ? false : r() < 1 / (1 + Math.exp(-(lvl - T) / s)));
+    }
+    function runSim(T, start, o) {
+      const sc = Staircase(start), hear = listener(T, o);
+      while (!sc.done()) sc.answer(hear(sc.level()));
+      return { thr: sc.threshold(), trials: sc.trials() };
+    }
+
+    return { FREQS, PTA, MIN, MAX, GRADES, Staircase, grade, summarize, makeRef, listener, runSim };
+  })();
+
   return api;
 })();
 if (typeof module !== 'undefined') module.exports = VX;
@@ -5045,6 +5216,248 @@ if (typeof module !== 'undefined') module.exports = VX;
   rrRender();
   render();
   onShow('cough', panel, draw);
+})();
+</script>
+<script>
+// ================= Hearing tab =================
+(() => {
+  const { $, esc, stamp, store, audio, Live, chart, renderReadout, onShow, showError, sleepMs, buzz } = window.VXUI;
+  const H = VX.hearing, U = VX.U;
+  const panel = $('#panelHearing');
+  const EAR = { R: 'right', L: 'left' };
+  const ORDER = [500, 1000, 2000, 4000, 6000];
+  const fLabel = (f) => (f >= 1000 ? f / 1000 + 'k' : String(f));
+  const fText = (f) => f.toLocaleString('en-IN') + ' Hz';
+
+  // ---------- Saved state ----------
+  const EXAMPLE = {
+    res: { R: { 1000: -80, 2000: -80, 4000: -70, 6000: -60, 500: -75 }, L: { 1000: -75, 2000: -70, 4000: -50, 6000: -45, 500: -75 } },
+    ref: { 500: -80, 1000: -85, 2000: -85, 4000: -80, 6000: -72.5 },
+    retest: -80, catchFalse: 0, catchTotal: 9, stray: 1, phones: ''
+  };
+  const st = { d: null, example: true, when: '' };
+  let refRec = store.get('hearing-ref', null);
+  const last = store.get('hearing-last', null);
+  if (last && last.res) Object.assign(st, { d: last, example: false, when: last.when || '' }); else Object.assign(st, { d: EXAMPLE, example: true });
+  try { $('#hrPhones').value = store.get('hearing-phones', ''); } catch (e) {}
+
+  const refFor = () => (st.example ? st.d.ref : refRec && refRec.ref);
+
+  function refStatus() {
+    const el = $('#hrRefStatus');
+    if (refRec) el.innerHTML = 'Reference saved ' + esc(refRec.when) + (refRec.phones ? ' with <strong>' + esc(refRec.phones) + '</strong>' : '') + '. Results are graded against it.';
+    else el.innerHTML = '<strong>No reference yet.</strong> The check still compares your two ears, but needs a reference listener for a hearing grade. See "Reference listener" below.';
+    $('#hrRefClear').disabled = !refRec;
+    $('#hrRefSave').disabled = st.example;
+  }
+
+  function render() {
+    const d = st.d, ref = refFor(), s = H.summarize(d.res, ref);
+    const warn = [], verdict = [];
+    let q = 'good';
+    if (s.asym) {
+      q = 'poor';
+      verdict.push('The ' + EAR[s.worseEar] + ' ear needed beeps about ' + Math.round(Math.abs(s.earDiff)) + ' dB louder than the other. A difference this large is worth an ear check: it can be wax or an infection, and sometimes needs a specialist.');
+    }
+    if (s.grade) {
+      if (s.grade.q === 'poor') q = 'poor'; else if (s.grade.q === 'fair' && q === 'good') q = 'fair';
+      verdict.push({
+        'Normal hearing': 'The better ear heard beeps about as quietly as the reference listener.',
+        'Mild hearing loss': 'Mild hearing loss in the better ear: quiet speech and voices across a room may be hard to follow. A test at an ENT clinic can confirm it.',
+        'Some tones not heard at full volume': 'Some beeps were not heard even at the loudest level. Please get a hearing test at an ENT clinic.'
+      }[s.grade.name] || s.grade.name + ' in the better ear. Hearing aids help many people with this level of loss; please see an ENT doctor or audiologist.');
+    } else if (!ref) {
+      if (!s.asym) { q = 'fair'; verdict.push('Your left and right ears heard beeps at similar levels. For a hearing grade, save a reference listener (see below).'); }
+    }
+    if (!st.example) {
+      if (d.retest != null && d.res.R && d.res.R[1000] != null && Math.abs(d.retest - d.res.R[1000]) > 10) warn.push('The repeat of the 1,000 Hz beep came out ' + Math.round(Math.abs(d.retest - d.res.R[1000])) + ' dB different, so the answers were unsteady. Try again somewhere quieter.');
+      if ((d.catchTotal && d.catchFalse / d.catchTotal > 0.25) || d.stray > 8) warn.push('Quite a few taps came when no beep was playing. Tap only when you are sure you heard something.');
+      if (ref && refRec && refRec.phones && d.phones && refRec.phones.toLowerCase() !== d.phones.toLowerCase()) warn.push('These earphones (' + esc(d.phones) + ') are not the reference earphones (' + esc(refRec.phones) + '), so the grade may be off.');
+    }
+    const earTxt = (e) => {
+      const E = s.ears[e];
+      if (!(d.res[e])) return '–';
+      if (ref && E.pta != null) return Math.round(E.pta) + ' dB above reference' + ' <span class="footnote">(' + esc(H.grade(E.pta).name.replace(' hearing loss', '').replace(' hearing', '').toLowerCase()) + ')</span>';
+      const v = H.PTA.map((f) => d.res[e][f]).filter((x) => x != null);
+      return v.length ? Math.round(-U.mean(v)) + ' dB below full volume' : 'Not heard';
+    };
+    const notHeard = ['R', 'L'].flatMap((e) => s.ears[e].notHeard.map((f) => EAR[e] + ' ' + fText(f)));
+    const hero = s.grade && ref
+      ? { label: 'Hearing, better ear', value: s.grade.name, small: true, unit: '', sub: s.better != null ? 'Average ' + Math.round(s.better) + ' dB above the reference over 500 to 4,000 Hz' : '' }
+      : { label: 'Difference between ears', value: s.earDiff == null ? '--' : String(Math.round(Math.abs(s.earDiff))), unit: 'dB', sub: s.earDiff == null ? '' : (s.asym ? 'The ' + EAR[s.worseEar] + ' ear needed louder beeps.' : 'Both ears heard beeps at similar levels.') };
+    renderReadout($('#hrReadout'), Object.assign(hero, {
+      stats: [
+        ['Right ear', earTxt('R')], ['Left ear', earTxt('L')],
+        ['Not heard at full volume', notHeard.length ? esc(notHeard.join(', ')) : 'None'],
+        ['Repeat at 1,000 Hz', d.retest == null || !d.res.R || d.res.R[1000] == null ? '–' : (Math.abs(d.retest - d.res.R[1000]) <= 10 ? 'Steady (' + Math.round(Math.abs(d.retest - d.res.R[1000])) + ' dB apart)' : Math.round(Math.abs(d.retest - d.res.R[1000])) + ' dB apart')],
+        ['Taps on blank turns', d.catchTotal ? d.catchFalse + ' of ' + d.catchTotal : '–'],
+        ['Earphones', d.phones ? esc(d.phones) : '–']
+      ],
+      verdict: verdict.length ? { q, text: verdict.join(' ') + ' This is a screening check, not a diagnosis.' } : null,
+      example: st.example,
+      source: st.example ? 'A made-up result: normal right ear, a dip at high pitches in the left ear, graded against a made-up reference.' : 'Your check' + (st.when ? ' from ' + st.when : '') + ', kept on this phone only.',
+      warnings: warn,
+      extra: st.example ? '' : '<p class="source"><button type="button" class="textbtn" id="hrExampleBtn">Show the example</button></p>',
+      share: st.example ? '' : [
+        'Phone Vitals Lab: tone hearing check' + (st.when ? ', ' + st.when : ''),
+        'Pitch (Hz): ' + ORDER.join(' / '),
+        'Right ear (dB re full volume): ' + ORDER.map((f) => (d.res.R && d.res.R[f] != null ? d.res.R[f] : 'not heard')).join(' / '),
+        'Left ear (dB re full volume): ' + ORDER.map((f) => (d.res.L && d.res.L[f] != null ? d.res.L[f] : 'not heard')).join(' / '),
+        s.grade && ref ? 'Grade (better ear, vs reference listener): ' + s.grade.name + (s.better != null ? ', ' + Math.round(s.better) + ' dB' : '') : 'No reference listener, so no grade.',
+        s.earDiff != null ? 'Ear difference: ' + Math.round(Math.abs(s.earDiff)) + ' dB' + (s.asym ? ' (' + EAR[s.worseEar] + ' worse)' : '') : '',
+        d.phones ? 'Earphones: ' + d.phones : '',
+        'Phone screening only, not an audiogram.'
+      ].filter(Boolean).join('\n')
+    }));
+    const b = $('#hrExampleBtn');
+    if (b) b.addEventListener('click', () => { Object.assign(st, { d: EXAMPLE, example: true, when: '' }); render(); draw(); refStatus(); });
+  }
+
+  function draw() {
+    const d = st.d, ref = refFor(), s = H.summarize(d.res, ref);
+    const xs = ORDER.map((_, i) => i), xTicks = ORDER.map((f, i) => [i, fLabel(f) + (i === ORDER.length - 1 ? ' Hz' : '')]);
+    const val = (e, f) => {
+      if (ref) { const v = s.ears[e].rel; return v && v[f] != null ? v[f] : NaN; }
+      const r = d.res[e]; return r && r[f] != null ? -r[f] : NaN;
+    };
+    const series = ['R', 'L'].map((e) => ({ x: xs, y: ORDER.map((f) => val(e, f)), color: e === 'R' ? '--accent' : 'trace', width: 2 }));
+    const marks = [];
+    series.forEach((sr, k) => sr.y.forEach((y, i) => { if (isFinite(y)) marks.push({ x: i, y, color: k ? 'trace' : '--accent' }); }));
+    const all = series.flatMap((sr) => sr.y).filter(isFinite);
+    if (!all.length) { chart($('#hrPlot'), { height: 200, x0: 0, x1: 1, y0: 0, y1: 1, empty: 'No beeps were heard' }); return; }
+    if (ref) {
+      $('#hrChartNote').textContent = 'How much louder each ear needed the beeps than the reference listener. Higher on the chart is better: the top line, 0 dB, is the reference. Below the 20 dB line counts as hearing loss.';
+      const y1 = Math.max(60, Math.ceil(Math.max(...all) / 20) * 20), yt = [];
+      for (let v = 0; v <= y1; v += 20) yt.push([v, v + ' dB']);
+      chart($('#hrPlot'), { height: 220, x0: -0.4, x1: ORDER.length - 0.6, y0: 0, y1, flipY: true, xTicks, yTicks: yt, series, marks });
+    } else {
+      $('#hrChartNote').textContent = 'How far below full volume each ear could still hear the beep. Higher on the chart means the ear heard quieter beeps. Without a reference listener, compare the two ears rather than the numbers.';
+      const lo = Math.floor((Math.min(...all) - 5) / 10) * 10, hi = Math.ceil((Math.max(...all) + 5) / 10) * 10, yt = [];
+      for (let v = lo; v <= hi; v += 10) yt.push([v, '−' + v]);
+      chart($('#hrPlot'), { height: 220, x0: -0.4, x1: ORDER.length - 0.6, y0: lo, y1: hi, xTicks, yTicks: yt, series, marks });
+    }
+  }
+
+  $('#hrRefSave').addEventListener('click', () => {
+    if (st.example) return;
+    const m = H.makeRef(st.d.res);
+    if (!Object.keys(m.ref).length) { $('#hrRefMsg').textContent = 'This result cannot be a reference: too many beeps were not heard.'; return; }
+    refRec = { ref: m.ref, when: st.d.when || stamp(), phones: st.d.phones || '' };
+    store.set('hearing-ref', refRec);
+    $('#hrRefMsg').textContent = m.ok ? 'Saved. Later checks are graded against this result.' : 'Saved, but the two ears differed at ' + m.warn.map(fText).join(', ') + '. A reference listener should have two equally good ears.';
+    refStatus(); render(); draw();
+  });
+  $('#hrRefClear').addEventListener('click', () => { refRec = null; store.set('hearing-ref', null); $('#hrRefMsg').textContent = 'Reference removed.'; refStatus(); render(); draw(); });
+
+  // ---------- The test ----------
+  function playTone(ctx, merger, f, db, ear) {
+    const t0 = ctx.currentTime + 0.06, A = Math.pow(10, db / 20);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0, t0);
+    for (let k = 0; k < 3; k++) {
+      const a = t0 + k * 0.4;
+      g.gain.setValueAtTime(0, a); g.gain.linearRampToValueAtTime(A, a + 0.02);
+      g.gain.setValueAtTime(A, a + 0.23); g.gain.linearRampToValueAtTime(0, a + 0.25);
+    }
+    o.connect(g); g.connect(merger, 0, ear === 'L' ? 0 : 1);
+    o.start(t0); o.stop(t0 + 1.15);
+    const lat = (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
+    return performance.now() + (t0 - ctx.currentTime + lat) * 1000;
+  }
+
+  async function run() {
+    showError($('#hrError'), '');
+    const phones = $('#hrPhones').value.trim();
+    store.set('hearing-phones', phones);
+    const ctx = audio();
+    if (!ctx) { showError($('#hrError'), 'This browser cannot play the test beeps.'); return; }
+    const merger = ctx.createChannelMerger(2);
+    merger.connect(ctx.destination);
+    let alive = true;
+    const quit = (msg) => { if (!alive) return; alive = false; Live.close(); try { merger.disconnect(); } catch (e) {} if (msg) showError($('#hrError'), msg); };
+    Live.open({ chip: 'Hearing check', status: 'Put on your earphones.', stopLabel: 'Stop', onStop: () => quit('The check was stopped.'), onHidden: () => quit('The check stopped because the page went to the background. Start again when ready.') });
+    const wait = async (ms) => { const end = performance.now() + ms; while (alive && performance.now() < end) await sleepMs(Math.min(100, end - performance.now())); return alive; };
+    const choose = (html, buttons) => new Promise((resolve) => {
+      Live.stage.innerHTML = html + '<div class="btn-row">' + buttons.map((b, i) => '<button type="button" class="bigbtn' + (b.quiet ? ' quiet' : '') + '" data-i="' + i + '" style="min-height: 72px; font-size: 18px">' + esc(b.label) + '</button>').join('') + '</div>';
+      Live.stage.querySelectorAll('[data-i]').forEach((el) => el.addEventListener('click', () => resolve(buttons[+el.dataset.i].value)));
+      const iv = setInterval(() => { if (!alive) { clearInterval(iv); resolve(null); } }, 200);
+    });
+
+    // 1. Setup
+    Live.bar(0);
+    if (await choose('<p class="live-note">Right earphone in the right ear, left in the left. Media volume at maximum. Find a quiet spot.</p>', [{ label: 'Ready', value: 1 }]) == null) return;
+
+    // 2. Ear check
+    for (const ear of (Math.random() < 0.5 ? ['R', 'L'] : ['L', 'R'])) {
+      let db = -35, answer = null;
+      for (let attempt = 0; attempt < 3 && alive; attempt++) {
+        Live.status('Ear check: listen…');
+        Live.stage.innerHTML = '<p class="live-note">A beep is playing.</p>';
+        playTone(ctx, merger, 1000, db, ear);
+        if (!(await wait(1400))) return;
+        Live.status('Ear check');
+        answer = await choose('<p class="live-note">Where did you hear the beep?</p>', [{ label: 'Left ear', value: 'L' }, { label: 'Right ear', value: 'R' }, { label: 'Both ears', value: 'B', quiet: true }, { label: "Didn't hear it", value: 'N', quiet: true }]);
+        if (answer == null) return;
+        if (answer !== 'N') break;
+        db += 10;
+      }
+      if (answer === 'N') return quit('No beep was heard in the ' + EAR[ear] + ' ear, even louder. Check the earphones are plugged in or connected, and the media volume is at maximum.');
+      if (answer === 'B') return quit('The beep was heard in both ears. The earphones may be playing in mono: turn off "Mono audio" in the phone\'s accessibility settings, or try other earphones.');
+      if (answer !== ear) return quit('The beep for the ' + EAR[ear] + ' ear was heard in the ' + EAR[answer] + ' ear. Swap the earphones round (look for L and R) and start again.');
+    }
+
+    // 3. Thresholds
+    const conds = [];
+    for (const e of ['R', 'L']) { for (const f of H.FREQS) conds.push({ e, f }); if (e === 'R') conds.push({ e, f: 1000, retest: true }); }
+    const res = { R: {}, L: {} };
+    let retest = null, catchFalse = 0, catchTotal = 0, stray = 0;
+    const taps = [];
+    Live.stage.innerHTML = '<button type="button" class="bigbtn" id="hrTap" style="min-height: 46vh">Tap when you hear a beep</button>';
+    const tapBtn = $('#hrTap');
+    tapBtn.addEventListener('pointerdown', (ev) => { ev.preventDefault(); taps.push(performance.now()); buzz(8); tapBtn.style.background = 'var(--accent)'; setTimeout(() => { tapBtn.style.background = ''; }, 120); });
+    tapBtn.addEventListener('keydown', (ev) => { if (ev.key === ' ' || ev.key === 'Enter') { ev.preventDefault(); taps.push(performance.now()); } });
+    Live.note('Tap even for a very faint beep. Beeps come at random moments, and sometimes nothing plays.');
+    for (let ci = 0; ci < conds.length && alive; ci++) {
+      const c = conds[ci];
+      const prev = res[c.e][H.FREQS[H.FREQS.indexOf(c.f) - 1]], other = c.e === 'L' ? res.R[c.f] : null;
+      const start = ci === 0 ? -40 : (other != null ? other + 15 : prev != null ? prev + 15 : c.retest ? (res.R[1000] != null ? res.R[1000] + 15 : -40) : -40);
+      const sc = H.Staircase(Math.min(-25, start));
+      Live.status((c.e === 'R' ? 'Right' : 'Left') + ' ear · ' + fText(c.f) + (c.retest ? ' again' : ''));
+      Live.timer((ci + 1) + ' of ' + conds.length);
+      let n = 0;
+      while (!sc.done() && alive) {
+        if (!(await wait(700 + 1300 * Math.random()))) return;
+        // Taps during the quiet gap are guesses.
+        stray += taps.splice(0).length;
+        const blank = n > 0 && Math.random() < 0.12;
+        const onset = blank ? performance.now() + 60 : playTone(ctx, merger, c.f, sc.level(), c.e);
+        if (!(await wait(onset - performance.now() + 1900))) return;
+        const heard = taps.some((t) => t >= onset + 100 && t <= onset + 1900);
+        taps.length = 0;
+        if (blank) { catchTotal++; if (heard) catchFalse++; continue; }
+        sc.answer(heard);
+        n++;
+        Live.bar((ci + Math.min(0.95, n / 9)) / conds.length);
+      }
+      if (!alive) return;
+      if (c.retest) retest = sc.threshold(); else res[c.e][c.f] = sc.threshold();
+    }
+    if (!alive) return;
+    alive = false;
+    Live.close();
+    try { merger.disconnect(); } catch (e) {}
+    const d = { res, retest, catchFalse, catchTotal, stray, phones, when: stamp() };
+    Object.assign(st, { d, example: false, when: d.when });
+    store.set('hearing-last', d);
+    refStatus(); render(); draw();
+    $('#hrReadout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('#hrStart').addEventListener('click', run);
+
+  refStatus();
+  render();
+  onShow('hearing', panel, draw);
 })();
 </script>
 </body>

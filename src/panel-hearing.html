@@ -1,0 +1,71 @@
+  <div class="panel" id="panelHearing" role="tabpanel" aria-labelledby="tabHearing" hidden>
+    <section class="capture">
+      <div class="capture-main">
+        <h2>Tone hearing check</h2>
+        <p class="capture-lede">Beeps play in one ear at a time, getting quieter, and you tap whenever you hear one. The page finds the quietest beep each ear hears at five pitches, from low (500 Hz) to high (6,000 Hz). It takes about 5 minutes.</p>
+        <p class="notice" id="hrRefStatus"></p>
+        <label class="field" for="hrPhones">Earphones used (optional, to match the reference)
+          <input id="hrPhones" class="num-in" style="width: 100%" type="text" maxlength="40" placeholder="e.g. white wired earphones">
+        </label>
+        <button type="button" class="btn" id="hrStart">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 11V9a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="10.5" width="3.4" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="13.6" y="10.5" width="3.4" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+          Start hearing check
+        </button>
+        <p class="error" id="hrError" role="alert" hidden></p>
+      </div>
+      <div class="howto-wrap">
+        <p class="howto-title">Before you start</p>
+        <ol class="howto">
+          <li><span>Find the <strong>quietest room</strong> you can. Switch off fans, coolers and the television.</span></li>
+          <li><span>Use <strong>earphones or headphones</strong>, right side in the right ear. Wired ones are best; Bluetooth works if you always use the same pair.</span></li>
+          <li><span>Turn the <strong>media volume to maximum</strong> and accept the volume warning. The beeps start quiet and are never louder than a normal conversation would be at that volume.</span></li>
+          <li><span>Tap the big button <strong>every time you hear a beep</strong>, however faint. Don't guess when you hear nothing.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="readout" aria-live="polite" id="hrReadout"></section>
+
+    <section class="chart-block">
+      <div class="chart-head">
+        <h2>Your hearing by pitch</h2>
+        <p id="hrChartNote">Higher on the chart means the ear heard quieter beeps. Low pitches are on the left, high pitches on the right.</p>
+      </div>
+      <div class="plot plot-fit" id="hrPlot"><canvas aria-label="Quietest beep heard at each pitch, for each ear"></canvas></div>
+      <div class="legend"><span><i style="background: var(--accent); border-radius: 50%"></i>Right ear</span><span><i style="background: var(--trace); border-radius: 50%"></i>Left ear</span></div>
+    </section>
+
+    <section class="card" id="hrRefCard">
+      <h3>Reference listener</h3>
+      <p>Phones and earphones play the same beep at different loudness, so the page cannot know on its own what counts as normal. Test a <strong>young family member (under 25) with good hearing</strong> once, with the same phone, earphones and maximum volume, and save their result as the reference. After that, everyone's result is compared with theirs and given a hearing grade.</p>
+      <div class="copyrow">
+        <button type="button" class="btn-quiet" id="hrRefSave">Use the last result as the reference</button>
+        <button type="button" class="btn-quiet" id="hrRefClear">Remove the reference</button>
+        <span class="copy-msg" id="hrRefMsg"></span>
+      </div>
+    </section>
+
+    <div class="method">
+      <section>
+        <h2>How the page tests hearing</h2>
+        <ol>
+          <li><strong>Ear check.</strong> One beep in each ear first, to make sure the earphones are the right way round and both sides work.</li>
+          <li><strong>Pulsed beeps.</strong> Each beep is three short pulses, which are easier to notice than one long tone and are not confused with ringing in the ears.</li>
+          <li><strong>Down 10, up 5.</strong> After every beep you hear, the next is 10 dB quieter; after every miss, 5 dB louder. The quietest level heard twice on the way up is that ear's threshold. Audiologists use the same steps.</li>
+          <li><strong>Random gaps and blank turns.</strong> Beeps come at irregular moments, and now and then nothing plays, to catch taps that are guesses.</li>
+          <li><strong>Repeat.</strong> The first pitch is tested again at the end of the right ear to see how steady the answers are.</li>
+          <li><strong>Grade.</strong> With a reference, the average over 500, 1,000, 2,000 and 4,000 Hz in the better ear is graded on the WHO scale: under 20 dB normal, 20 to 34 mild, 35 to 49 moderate, 50 to 64 moderately severe, 65 to 79 severe, 80 and above profound.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Limits of this version</h2>
+        <ul>
+          <li>This is a learning tool, not a medical device, and not a substitute for a test by an audiologist.</li>
+          <li>The grade is only as good as the reference. A reference with an undiscovered hearing problem makes everyone look better than they are.</li>
+          <li>Background noise, loose earphones and a phone that lowers its volume on its own all raise the thresholds.</li>
+          <li>The left-right comparison does not need a reference, but cheap earphones can be a few dB louder on one side.</li>
+          <li>It does not test understanding speech in noise, which is often the first thing people notice.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
